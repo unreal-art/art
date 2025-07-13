@@ -8,7 +8,8 @@
   },
   "packageManager": "bun@1.1.38",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
+    "dev1": "next dev",
     "build": "next build",
     "prestart": "bun run build",
     "start": "next start",
