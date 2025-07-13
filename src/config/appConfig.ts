@@ -18,8 +18,8 @@ export const appConfig = {
   },
 
   ai: {
-    genImageLatency: 9,//in seconds
-  }
+    genImageLatency: 9, //in seconds
+  },
 
   // Environment-specific configurations
   environment: {
