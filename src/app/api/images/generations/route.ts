@@ -130,6 +130,10 @@ const processImageGeneration = async (
 
     console.log(`[Background] Uploaded ${uploadResults.length} images`)
 
+    if (uploadResults.length === 0) {
+      throw new Error("No images found, skipping post creation")
+    }
+
     // Insert post into database
     const { data, error } = await supabaseClient
       .from("posts")
