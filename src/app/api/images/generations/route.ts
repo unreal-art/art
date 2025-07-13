@@ -100,6 +100,7 @@ const processImageGeneration = async (
           base64Image,
           fileName
         )
+        uploadResults.push(uploadResult)
         return uploadResult
       } catch (err) {
         console.error(
