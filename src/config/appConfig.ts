@@ -156,6 +156,6 @@ export const appConfig = {
     enableProfileEditing: true,
     enableGallerySharing: true,
   },
-};
+}
 
-export default appConfig;
+export default appConfig

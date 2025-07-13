@@ -1,19 +1,24 @@
-import { withSentryConfig } from "@sentry/nextjs";
-import type { NextConfig } from "next";
-import type { Event } from "@sentry/core";
+import { withSentryConfig } from "@sentry/nextjs"
+import type { NextConfig } from "next"
+import type { Event } from "@sentry/core"
 
-const isMobileBuild = process.env.BUILD_TARGET === "mobile";
+const isMobileBuild = process.env.BUILD_TARGET === "mobile"
 // Performance optimized config
 const nextConfig: NextConfig = {
   output: isMobileBuild ? "export" : undefined,
   trailingSlash: isMobileBuild,
-  
+
+  turboConfig: {},
+
   // Performance optimizations
   reactStrictMode: true,
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error", "warn"],
+          }
+        : false,
   },
 
   // Image optimization settings
@@ -86,7 +91,7 @@ const nextConfig: NextConfig = {
       "react-loading-skeleton",
       "react-icons",
       "recharts",
-      "@tremor/react"
+      "@tremor/react",
     ],
     // Enhanced CSS optimization with critical CSS extraction
     optimizeCss: {
@@ -97,7 +102,7 @@ const nextConfig: NextConfig = {
     },
     // Enable React 19 streaming features
     serverActions: {
-      bodySizeLimit: '2mb',
+      bodySizeLimit: "2mb",
     },
     // Improve client-side navigation
     // ppr: true, // Disabled until we upgrade to Next.js canary
@@ -121,7 +126,7 @@ const nextConfig: NextConfig = {
   // Improve runtime performance
   // Add page caching
   pageExtensions: ["tsx", "ts", "jsx", "js", "mdx"],
-};
+}
 
 // Sentry configuration
 const sentryWebpackPluginOptions = {
@@ -168,12 +173,12 @@ const sentryWebpackPluginOptions = {
   beforeSend(event: Event): Event {
     // Sanitize any sensitive data before sending to Sentry
     if (event.request?.headers) {
-      const headers = event.request.headers;
-      delete headers["Authorization"];
-      delete headers["Cookie"];
+      const headers = event.request.headers
+      delete headers["Authorization"]
+      delete headers["Cookie"]
     }
-    return event;
+    return event
   },
-};
+}
 
-export default withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+export default withSentryConfig(nextConfig, sentryWebpackPluginOptions)
