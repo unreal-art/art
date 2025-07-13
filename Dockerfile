@@ -1,36 +1,31 @@
 # Build stage
-FROM node:23 AS builder
+FROM oven/bun:alpine AS builder
 WORKDIR /app
 
-#COPY package*.json pnpm-lock.yaml ./
+# Copy only package files first for better caching
+COPY package.json bun.lockb* ./
+RUN bun install --frozen-lockfile
 
+# Copy the rest of your application
 COPY . .
 
-# COPY .env.example .env
-
-
-RUN npm install -g bun
-RUN bun install
-
+# Build your app (if needed)
+RUN bun run build
 
 # Deploy stage
-FROM node:23-alpine
+FROM oven/bun:alpine
 
 ENV PORT=3000
-ENV NODE_ENV="production"
-
+ENV NODE_ENV=production
 
 WORKDIR /app
-
-RUN npm install -g bun # the other bun not visible here
 
 EXPOSE $PORT
 
+# Copy built app and dependencies from builder
 COPY --from=builder /app ./
 
-RUN bun run build
-# CMD ["sh", "-c", "npm run test && npm run test:e2e"]
-
+# Start your app
 ENTRYPOINT ["bun", "next", "start"]
 
 LABEL maintainer="Hiro <laciferin@gmail.com>"
