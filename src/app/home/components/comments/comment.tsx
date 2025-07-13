@@ -34,8 +34,13 @@ export default function Comment({
 
   // --- Optimistic UI state ---
   const [optimisticLiked, setOptimisticLiked] = useState(data.user_liked);
-  const [optimisticLikeCount, setOptimisticLikeCount] = useState(data.like_count);
-  const prevDataRef = useRef({ user_liked: data.user_liked, like_count: data.like_count });
+  const [optimisticLikeCount, setOptimisticLikeCount] = useState(
+    data.like_count,
+  );
+  const prevDataRef = useRef({
+    user_liked: data.user_liked,
+    like_count: data.like_count,
+  });
 
   // Sync local state when props change (e.g., after parent re-render)
   useEffect(() => {
@@ -45,7 +50,10 @@ export default function Comment({
     ) {
       setOptimisticLiked(data.user_liked);
       setOptimisticLikeCount(data.like_count);
-      prevDataRef.current = { user_liked: data.user_liked, like_count: data.like_count };
+      prevDataRef.current = {
+        user_liked: data.user_liked,
+        like_count: data.like_count,
+      };
     }
   }, [data.user_liked, data.like_count]);
 
@@ -91,7 +99,7 @@ export default function Comment({
             <div className="flex-grow space-y-4 gap-4">
               <p className="text-primary-6 text-sm flex-grow">{data.content}</p>
               <button
-                className="text-primary-9  text-xs"
+                className="text-primary-8 hover:underline  text-xs "
                 onClick={() => {
                   data.username = user as string;
                   setReplyTo(data);
