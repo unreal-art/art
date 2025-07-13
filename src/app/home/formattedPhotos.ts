@@ -26,7 +26,7 @@ const breakpoints = [1080, 640, 384, 256, 128, 96, 64, 48];
 export const getImage = (
   cidOrUrl: string | undefined,
   fileName: string,
-  author: string
+  author: string,
 ): string => {
   try {
     if (!cidOrUrl) {
@@ -176,7 +176,7 @@ export const formattedPhotosForGallery = (pages: Page[]): ExtendedPhoto[] => {
           caption: post.caption,
           seed: post.seed,
         } as ExtendedPhoto;
-      })
+      }),
     )
     .filter(Boolean) as ExtendedPhoto[];
 };
@@ -218,7 +218,7 @@ export const formattedPhotosForGrid = (pages: Page[]): ExtendedPhoto[] => {
           caption: post.caption,
           seed: post.seed,
         } as ExtendedPhoto;
-      })
+      }),
     )
     .filter(Boolean) as ExtendedPhoto[];
 };
@@ -261,7 +261,7 @@ export const formattedPhotos = (pages: Page[]): ExtendedPhoto[] => {
           caption: post.caption,
           seed: post.seed,
         } as ExtendedPhoto;
-      })
+      }),
     )
     .filter(Boolean) as ExtendedPhoto[];
 };

@@ -54,7 +54,14 @@ export const appConfig = {
     },
     cloudflare: {
       url: process.env.NEXT_PUBLIC_CF_URL,
-      r2StorageUrl: process.env.NEXT_PUBLIC_R2_STORAGE_URL,
+      r2Endpoint: process.env.CLOUDFLARE_R2_ENDPOINT || "",
+      r2BucketName: process.env.CLOUDFLARE_R2_BUCKET_NAME || "",
+      r2AccessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || "",
+      r2SecretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || "",
+      r2Url: process.env.CLOUDFLARE_R2_URL || "",
+    },
+    openai: {
+      apiKey: process.env.OPENAI_API_KEY,
     },
   },
 
@@ -149,6 +156,6 @@ export const appConfig = {
     enableProfileEditing: true,
     enableGallerySharing: true,
   },
-}
+};
 
-export default appConfig
+export default appConfig;

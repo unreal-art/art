@@ -1,6 +1,6 @@
 "use client";
 
-import { supabase } from "$/supabase/client";
+import { createClient } from "$/supabase/client";
 import { ExtendedUser } from "$/types/data.types";
 import { useGenerationStore } from "@/app/providers/GenerationStoreProvider";
 import { sendJobRequest } from "@/queries/post/sendJobRequest";
@@ -26,7 +26,7 @@ export function useCreateJob(user: ExtendedUser | null) {
 
   // Get only the confirmed functions from the store
   const { startGeneration, stopGeneration } = useGenerationStore(
-    (state) => state
+    (state) => state,
   );
 
   // Maintain local state for tracking
@@ -96,38 +96,72 @@ export function useCreateJob(user: ExtendedUser | null) {
     stopGeneration();
   }, [stopGeneration]);
 
-  // Watch for new posts where author == user.id
+  // Poll for new posts instead of using real-time subscription
   useEffect(() => {
-    if (!user) return;
+    if (!user || !isGenerating) {
+      return;
+    }
 
-    const subscription = supabase
-      .channel("user_posts_channel")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "posts" },
-        (payload) => {
-          if (payload.new.author === user.id) {
-            // Handle successful generation
-            setIsGenerating(false);
-            setProgress(100);
-            stopGeneration();
+    console.log("Starting polling for user:", user.id);
+    const supabaseClient = createClient();
+    let latestPostId: number | null = null;
 
-            // Prefetch post data
-            queryClient.invalidateQueries({ queryKey: ["posts"] });
+    // Get the latest post ID initially
+    const getLatestPost = async () => {
+      const { data } = await supabaseClient
+        .from("posts")
+        .select("id")
+        .eq("author", user.id)
+        .order("id", { ascending: false })
+        .limit(1)
+        .single();
 
-            // Navigate to the new post
-            router.push(
-              `/home/photo/${payload.new.id}?a=${payload.new.author}`
-            );
-          }
+      if (data) {
+        latestPostId = data.id;
+        console.log("Latest post ID:", latestPostId);
+      }
+    };
+
+    getLatestPost();
+
+    // Poll every 2 seconds
+    const interval = setInterval(async () => {
+      try {
+        const { data } = await supabaseClient
+          .from("posts")
+          .select("id, author")
+          .eq("author", user.id)
+          .order("id", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (data && data.id !== latestPostId) {
+          console.log("New post detected:", data);
+          latestPostId = data.id;
+
+          // Handle successful generation
+          setIsGenerating(false);
+          setProgress(100);
+          stopGeneration();
+
+          // Prefetch post data
+          queryClient.invalidateQueries({ queryKey: ["posts"] });
+
+          // Navigate to the new post
+          // setTimeout(() => {
+          router.push(`/home/photo/${data.id}`);
+          // }, 100);
         }
-      )
-      .subscribe();
+      } catch (error) {
+        console.log("Polling check - no new posts yet");
+      }
+    }, 2000);
 
     return () => {
-      supabase.removeChannel(subscription);
+      console.log("Stopping polling");
+      clearInterval(interval);
     };
-  }, [user, router, stopGeneration, queryClient]);
+  }, [user, router, stopGeneration, queryClient, isGenerating]);
 
   return {
     ...mutation,
@@ -140,44 +174,3 @@ export function useCreateJob(user: ExtendedUser | null) {
     },
   };
 }
-
-// "use client";
-
-// import { Client } from "$/supabase/client";
-// import { ExtendedUser } from "$/types/data.types";
-// import { useGenerationStore } from "@/app/providers/GenerationStoreProvider";
-// import { sendJobRequest } from "@/queries/post/sendJobRequest";
-// import { useMutation } from "@tanstack/react-query";
-// import { useRouter } from "next/navigation";
-
-// export function useCreateJob() {
-//   const router = useRouter();
-//   const { startGeneration, stopGeneration } = useGenerationStore(
-//     (state) => state,
-//   );
-
-//   return useMutation({
-//     mutationFn: async ({
-//       prompt,
-//       user,
-//     }: {
-//       prompt: string;
-//       user: ExtendedUser | null;
-//     }) => {
-//       if (!prompt) throw new Error("Prompt is required");
-//       startGeneration();
-//       return sendJobRequest({ prompt, user });
-//     },
-
-//     onSuccess: (data) => {
-//       //TODO: the post id should be among the data returned
-//       log("Job created successfully", data);
-//       stopGeneration();
-//       router.push(`/home/photo/${data.data[0].id}?a=${data.data[0].author}`); // Navigate after success
-//     },
-//     onError: (error) => {
-//       stopGeneration();
-//       logError("Error creating job", error);
-//     },
-//   });
-// }

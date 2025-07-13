@@ -1,20 +1,20 @@
-import type { Metadata } from "next"
-import localFont from "next/font/local"
-import "./globals.css"
-import ServiceWorker from "./components/serviceWorker"
-import ProgressBar from "./components/progressBar"
-import { Suspense } from "react"
-import appConfig from "@/config"
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import "./globals.css";
+import ServiceWorker from "./components/serviceWorker";
+import ProgressBar from "./components/progressBar";
+import { Suspense } from "react";
+import appConfig from "@/config";
 
-import { HighlightInit } from "@highlight-run/next/client"
-import PageTransitionProvider from "./providers/PageTransitionProvider"
+import { HighlightInit } from "@highlight-run/next/client";
+import PageTransitionProvider from "./providers/PageTransitionProvider";
 
 const nasalization = localFont({
   src: "./fonts/nasalization/Nasalization Rg.otf",
   preload: true,
   display: "swap",
   variable: "--font-nasalization",
-})
+});
 
 const archivo = localFont({
   src: [
@@ -42,7 +42,7 @@ const archivo = localFont({
   preload: true,
   display: "swap",
   variable: "--font-archivo",
-})
+});
 
 export const metadata: Metadata = {
   title: "Unreal Art",
@@ -80,21 +80,18 @@ export const metadata: Metadata = {
   other: {
     "theme-color": "#191919", // Discord embed color
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" className={`${archivo.variable} ${nasalization.variable}`}>
       <head>
         {/* Storage URLs: Primary R2 storage for production assets */}
-        <link
-          rel="preconnect"
-          href={appConfig.services.cloudflare.r2StorageUrl}
-        />
+        <link rel="preconnect" href={appConfig.services.cloudflare.r2Url} />
 
         {/* Cloudflare URL: Used for both development and public resources */}
         <link rel="preconnect" href={appConfig.services.cloudflare.url} />
@@ -144,5 +141,5 @@ export default function RootLayout({
         <ServiceWorker />
       </body>
     </html>
-  )
+  );
 }
