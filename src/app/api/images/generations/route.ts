@@ -24,7 +24,7 @@ interface UploadResult {
 // Initialize OpenAI client once
 const initializeOpenAI = (apiKey: string): OpenAI => {
   return new OpenAI({
-    baseURL: "https://openai.unreal.art/v1",
+    baseURL: appConfig.services.openai.apiUrl,
     apiKey,
   })
 }
@@ -123,9 +123,10 @@ const processImageGeneration = async (
         return await p
       },
       {
-        concurrency: Math.min(promises.length,4),
+        concurrency: Math.min(promises.length, 4),
       }
     )
+
     console.log(`[Background] Uploaded ${uploadResults.length} images`)
 
     // Insert post into database

@@ -66,6 +66,7 @@ export const appConfig = {
     },
     openai: {
       apiKey: process.env.OPENAI_API_KEY,
+      apiUrl: process.env.OPENAI_API_URL || "https://openai.unreal.art/v1",
     },
   },
 
