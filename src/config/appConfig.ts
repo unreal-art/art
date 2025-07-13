@@ -17,6 +17,10 @@ export const appConfig = {
     newUserCredit: Number(process.env.NEXT_PUBLIC_NEW_USER_CREDIT || 5),
   },
 
+  ai: {
+    genImageLatency: 9,//in seconds
+  }
+
   // Environment-specific configurations
   environment: {
     isDevelopment: process.env.NODE_ENV === "development",

@@ -8,8 +8,6 @@ const nextConfig: NextConfig = {
   output: isMobileBuild ? "export" : undefined,
   trailingSlash: isMobileBuild,
 
-  turboConfig: {},
-
   // Performance optimizations
   reactStrictMode: true,
   compiler: {
