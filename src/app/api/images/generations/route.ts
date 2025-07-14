@@ -113,14 +113,14 @@ const processImageGeneration = async (
     }
 
     // If n > 1, fire off n single-image generations in parallel (fire-and-forget)
-    const promises: Promise<UploadResult | null>[] = []
+    const promises: Promise<UploadResponse | null>[] = []
     for (let i = 0; i < n; i++) {
       const seed = baseSeed + i
       promises.push(generateAndUpload(seed, i))
     }
     let result = await Bluebird.map(
       promises,
-      async (p: Promise<Boolean>) => {
+      async (p: Promise<UploadResponse | null>) => {
         // console.log(p)
         return await p
       },
