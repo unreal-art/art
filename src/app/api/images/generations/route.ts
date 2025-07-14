@@ -5,6 +5,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import appConfig from "@/config"
 import { uploadBase64Image } from "./cloudflare"
 import Bluebird from "bluebird"
+import { UploadResponse } from "$/types/data.types"
 // Types for better type safety
 interface ImageGenerationRequest {
   inputs: {
@@ -74,7 +75,7 @@ const processImageGeneration = async (
     const baseSeed =
       requestData.inputs.Seed || Math.floor(Math.random() * 1000000)
     const prompt = requestData.inputs.Prompt
-    const uploadResults: UploadResult[] = []
+    const uploadResults: UploadResponse[] = []
 
     // Helper to generate a single image with a unique seed
     const generateAndUpload = async (seed: number, index: number) => {
