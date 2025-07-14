@@ -115,14 +115,16 @@ const processImageGeneration = async (
     // If n > 1, fire off n single-image generations in parallel (fire-and-forget)
     const promises: Promise<UploadResponse | null>[] = []
     for (let i = 0; i < n; i++) {
-      const seed = baseSeed + i
+      const seed = baseSeed + i * n + (baseSeed % 1000)
       promises.push(generateAndUpload(seed, i))
     }
     let result = await Bluebird.map(
       promises,
       async (p: Promise<UploadResponse | null>) => {
         // console.log(p)
-        return await p
+        await Bluebird.delay(50)
+        await p
+        return
       },
       {
         concurrency: Math.min(promises.length, 4),
@@ -182,7 +184,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         status: false,
-        message: "Missing required configuration",
+        message: "System Error: Missing required configuration",
       },
       { status: 500 }
     )
