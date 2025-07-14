@@ -212,12 +212,18 @@ export async function POST(req: Request) {
     const secretSupabaseClient = createClient(supabaseUrl, private_SRK)
 
     // Start background processing (don't await)
-    processImageGeneration(requestData, user.id, openai, secretSupabaseClient)
+    // You have to wait cuz the serverless function terminates as soon as the response sent
+    await processImageGeneration(
+      requestData,
+      user.id,
+      openai,
+      secretSupabaseClient
+    )
 
     // Return immediate success response
     return NextResponse.json({
       status: true,
-      message: "Image generation started",
+      message: "Image generation finished",
       data: {
         prompt: requestData.inputs.Prompt,
         author: requestData.author,
