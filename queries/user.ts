@@ -36,33 +36,11 @@ export const getUser = async (client?: Client) => {
       .single(); // Ensures only one row is returned
 
     if (walletError) {
+      console.error(walletError)
       return null;
     }
 
-    // Refetch the profile data to get the updated wallet
-    const { data: updatedProfileData, error: refetchError } = await authClient
-      .from("profiles")
-      .select("*")
-      .eq("id", profileData[0].id);
-
-    if (refetchError) {
-      return null;
-    }
-
-    // Use the updated profile data instead of the original profileData
-    const user = {
-      ...userData.user,
-      wallet: updatedProfileData[0].wallet as WalletObject | undefined,
-      bio: updatedProfileData[0].bio as string,
-      location: updatedProfileData[0].location as string,
-      creditBalance: updatedProfileData[0].credit_balance as number,
-      full_name: updatedProfileData[0].full_name as string,
-      username:
-        updatedProfileData[0].display_name || updatedProfileData[0].full_name,
-      avatar_url: updatedProfileData[0].avatar_url as string,
-      torus_id: updatedProfileData[0].torus_id as string,
-    };
-    return user;
+    return getUser()
   }
 
   // console.log(profileData[0].wallet);
