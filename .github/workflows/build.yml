@@ -43,7 +43,6 @@ jobs:
       - name: Write environment
         run: |
           echo "${{ env.envfile }}" | tr ' ' '\n' >> .env
-          source .env
 
       - name: Build
         run: |
