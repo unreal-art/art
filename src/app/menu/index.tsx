@@ -51,7 +51,7 @@ interface INotificationProps {
 
 const dartContract = getContractInstance(
   torusTestnet,
-  appConfig.blockchain.contracts.dart
+  appConfig.blockchain.contracts.dart,
 );
 
 // Separate client component for the button
@@ -96,7 +96,13 @@ export default function Menu({ children }: INotificationProps) {
 
       // Small delay to ensure the overlay is visible
       await new Promise((resolve) => setTimeout(resolve, 100));
-
+      //clear cookies
+      const cookies = document.cookie.split(";");
+      for (const cookie of cookies) {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+        document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+      }
       const { error } = await supabase.auth.signOut();
       if (error) {
         logError("Error logging out", error);
