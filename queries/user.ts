@@ -1,43 +1,43 @@
-"use server";
+"use server"
 
-import { createClient } from "$/supabase/server";
-import { generateEthereumWallet } from "@/utils";
-import { Client } from "$/supabase/client";
+import { createClient } from "$/supabase/server"
+import { generateEthereumWallet } from "@/utils"
+import { Client } from "$/supabase/client"
 
-export const getUser = async (client?: Client) => {
-  const supabase = await createClient();
+export const getUser = async (client?: Client): Promise<User | null> => {
+  const supabase = await createClient()
 
-  const authClient = client ?? supabase;
-  const { data: userData, error } = await authClient.auth.getUser();
+  const authClient = client ?? supabase
+  const { data: userData, error } = await authClient.auth.getUser()
 
   if (error) {
-    return null;
+    return null
   }
 
   //get data from profile data
   const { data: profileData, error: profileError } = await authClient
     .from("profiles")
     .select("*")
-    .eq("id", userData?.user?.id);
+    .eq("id", userData?.user?.id)
 
   if (profileError) {
-    return null;
+    return null
   }
 
   //check if user has a wallet
   if (!profileData[0].wallet) {
-    const wallet = generateEthereumWallet();
+    const wallet = generateEthereumWallet()
     // console.log(wallet);
 
     const { error: walletError } = await authClient
       .from("profiles")
       .update({ wallet }) // Set new wallet
       .eq("id", profileData[0].id) // Where the user_id matches
-      .single(); // Ensures only one row is returned
+      .single() // Ensures only one row is returned
 
     if (walletError) {
       console.error(walletError)
-      return null;
+      return null
     }
 
     return getUser()
@@ -55,6 +55,6 @@ export const getUser = async (client?: Client) => {
     username: profileData[0].display_name || profileData[0].full_name,
     avatar_url: profileData[0].avatar_url as string,
     torus_id: profileData[0].torus_id as string,
-  };
-  return user;
-};
+  }
+  return user
+}
