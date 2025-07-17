@@ -16,7 +16,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,15 +30,6 @@ jobs:
           bun-repo: "oven-sh/bun"
           cache: true
           # cache-bin: true
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 23
-          check-latest: false
-          # cache-dependency-path: "bun.lockb"
-          # cache: "bun"
-
       - name: Install Dependencies
         run: |
           cp .env.example .env
