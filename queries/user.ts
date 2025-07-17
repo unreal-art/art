@@ -56,5 +56,5 @@ export const getUser = async (client?: Client): Promise<User | null> => {
     avatar_url: profileData[0].avatar_url as string,
     torus_id: profileData[0].torus_id as string,
   }
-  return user
+  return user as any as User
 }
