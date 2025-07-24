@@ -43,8 +43,8 @@ We’re evolving into an AI Launchpad and Studio—a unified space for:
 
 Whether you’re a founder, creator, or just AI-curious—Unreal is your home. Help us shape the future of decentralized, democratized AI.
 
-- Try it now: [v0.unreal.art](https://v0.unreal.art)
-- Learn more: [unreal.art](https://art.unreal.art)
+- Try it now: [art.unreal.art](https://art.unreal.art)
+- Learn more: [unreal.art](https://unreal.art)
 - Twitter: [@ideomind](https://twitter.com/ideomind)
 
 ---
