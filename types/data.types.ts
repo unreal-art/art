@@ -23,6 +23,8 @@ export type Post = {
   prompt: string | null
   seed: number | null
   caption: string | null
+  media_type: string | null
+  video_data: any | null
 }
 
 export interface JobSpec extends Post {

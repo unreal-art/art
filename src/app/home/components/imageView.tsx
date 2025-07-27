@@ -83,19 +83,31 @@ export default function ImageView({
             <div className="grid grid-cols-1 h-full md:grid-cols-2">
               <div className="h-full col-span-1 hidden md:block">
                 <div className="relative w-full md:h-full">
-                  <OptimizedImage
-                    src={currentImage.src}
-                    alt={currentImage.caption || "Image"}
-                    width={450}
-                    height={450}
-                    quality={75}
-                    priority={false}
-                    trackPerformance={true}
-                    imageName={
-                      currentImage.src?.split("/").pop()?.split("?")[0]
-                    }
-                    className="object-cover w-full h-full"
-                  />
+                  {currentImage.media_type === 'VIDEO' ? (
+                    <video
+                      src={currentImage.src}
+                      controls
+                      controlsList="nodownload"
+                      className="object-cover w-full h-full rounded-md"
+                      style={{ maxWidth: '100%', maxHeight: '100%' }}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <OptimizedImage
+                      src={currentImage.src}
+                      alt={currentImage.caption || "Image"}
+                      width={450}
+                      height={450}
+                      quality={75}
+                      priority={false}
+                      trackPerformance={true}
+                      imageName={
+                        currentImage.src?.split("/").pop()?.split("?")[0]
+                      }
+                      className="object-cover w-full h-full"
+                    />
+                  )}
                 </div>
               </div>
 

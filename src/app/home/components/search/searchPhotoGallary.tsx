@@ -21,8 +21,8 @@ import { useGalleryStore } from "@/stores/galleryStore";
 import OptimizedImage from "@/app/components/OptimizedImage";
 import { capitalizeFirstAlpha, formatDisplayName } from "@/utils";
 
-// Memoized LazyImage component to prevent unnecessary recreations
-const LazyImage = React.memo(
+// Memoized LazyMedia component to handle both images and videos
+const LazyMedia = React.memo(
   ({
     photo,
     width,
@@ -32,6 +32,7 @@ const LazyImage = React.memo(
     title,
     sizes,
     shouldPrioritize,
+    mediaType,
   }: {
     photo: any;
     width: number;
@@ -41,10 +42,12 @@ const LazyImage = React.memo(
     title?: string;
     sizes?: string;
     shouldPrioritize: boolean;
+    mediaType?: string | null;
   }) => {
     const imageRef = React.useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(shouldPrioritize);
     const [hasError, setHasError] = useState(false);
+    const [videoLoaded, setVideoLoaded] = useState(false);
 
     useEffect(() => {
       // Skip for prioritized images - they load immediately
@@ -107,28 +110,81 @@ const LazyImage = React.memo(
         }}
       >
         {isVisible ? (
-          <OptimizedImage
-            fill
-            src={hasError ? "/placeholder-image.jpg" : photo}
-            alt={alt || "Search result"}
-            title={title}
-            sizes={responsiveSizes}
-            loading={shouldPrioritize ? "eager" : "lazy"}
-            priority={shouldPrioritize}
-            className="rounded-lg"
-            placeholder={"blurDataURL" in photo ? "blur" : undefined}
-            trackPerformance={process.env.NODE_ENV === "development"}
-            imageName={imageName}
-            onError={(e) => {
-              // Handle image loading failures
-              setHasError(true);
-              const target = e.target as HTMLImageElement;
-              if (target) {
-                target.onerror = null; // Prevent infinite error loop
-                target.src = "/placeholder-image.jpg";
-              }
-            }}
-          />
+          mediaType === 'VIDEO' ? (
+            <div className="relative w-full h-full">
+              {!videoLoaded && (
+                <div className="absolute inset-0 bg-primary-13 rounded-lg flex items-center justify-center">
+                  <div className="text-primary-3 text-sm">Loading video...</div>
+                </div>
+              )}
+              <video
+                src={typeof photo === 'object' && photo.src ? photo.src : photo}
+                className="w-full h-full object-cover rounded-lg"
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                controlsList="nodownload"
+                style={{ display: videoLoaded ? 'block' : 'none' }}
+                onMouseEnter={(e) => {
+                  const video = e.currentTarget;
+                  if (video.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+                    video.play().catch(err => console.log('Play failed:', err));
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  const video = e.currentTarget;
+                  video.pause();
+                  video.currentTime = 0; // Reset to first frame for thumbnail
+                }}
+                onLoadedMetadata={(e) => {
+                  console.log('Video metadata loaded for:', typeof photo === 'object' && photo.src ? photo.src : photo);
+                  // Ensure video shows first frame as thumbnail
+                  e.currentTarget.currentTime = 0.1;
+                  setVideoLoaded(true);
+                }}
+                onCanPlay={(e) => {
+                  console.log('Video can play:', typeof photo === 'object' && photo.src ? photo.src : photo);
+                  setVideoLoaded(true);
+                }}
+                onError={(e) => {
+                  console.log('Video load error for src:', typeof photo === 'object' && photo.src ? photo.src : photo);
+                  console.log('Video error event:', e);
+                  setVideoLoaded(false);
+                  setHasError(true);
+                }}
+              />
+              {/* Video indicator overlay - positioned in bottom right corner */}
+              <div className="absolute bottom-2 right-2">
+                <div className="w-6 h-6 bg-black bg-opacity-70 rounded-full flex items-center justify-center">
+                  <div className="w-0 h-0 border-l-4 border-l-white border-y-2 border-y-transparent ml-0.5"></div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <OptimizedImage
+              fill
+              src={hasError ? "/placeholder-image.jpg" : photo}
+              alt={alt || "Search result"}
+              title={title}
+              sizes={responsiveSizes}
+              loading={shouldPrioritize ? "eager" : "lazy"}
+              priority={shouldPrioritize}
+              className="rounded-lg"
+              placeholder={"blurDataURL" in photo ? "blur" : undefined}
+              trackPerformance={process.env.NODE_ENV === "development"}
+              imageName={imageName}
+              onError={(e) => {
+                // Handle image loading failures
+                setHasError(true);
+                const target = e.target as HTMLImageElement;
+                if (target) {
+                  target.onerror = null; // Prevent infinite error loop
+                  target.src = "/placeholder-image.jpg";
+                }
+              }}
+            />
+          )
         ) : (
           // Empty placeholder with correct dimensions
           <div className="w-full h-full rounded-lg bg-primary-13" />
@@ -154,15 +210,18 @@ const LazyImage = React.memo(
   }
 );
 
-// Enhanced renderNextImage with Intersection Observer for more efficient loading
-function renderNextImage(
+// Enhanced media renderer with Intersection Observer for more efficient loading
+function renderNextMedia(
   { alt = "", title, sizes }: RenderImageProps,
   { photo, width, height, index = 0 }: RenderImageContext
 ) {
   // Use priority loading for the first 4 images only (reduced from 8 for faster initial load)
   const shouldPrioritize = index < 4;
 
-  // Only render the LazyImage component on the client side
+  // Extract media type from the photo object
+  const mediaType = (photo as any)?.media_type;
+
+  // Only render the LazyMedia component on the client side
   return typeof window === "undefined" ? (
     // Server-side placeholder
     <div
@@ -175,7 +234,7 @@ function renderNextImage(
       }}
     />
   ) : (
-    <LazyImage 
+    <LazyMedia 
       photo={photo}
       width={width}
       height={height}
@@ -184,6 +243,7 @@ function renderNextImage(
       title={title}
       sizes={sizes}
       shouldPrioritize={shouldPrioritize}
+      mediaType={mediaType}
     />
   );
 }
@@ -334,7 +394,7 @@ export default function SearchPhotoGallary({
                 handleImageIndex={handleImageIndex}
               />
             ),
-            image: renderNextImage,
+            image: renderNextMedia,
           }}
         />
       </InfiniteScroll>

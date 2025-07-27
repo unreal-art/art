@@ -2,7 +2,7 @@ import { ITabs, TabBtn } from "../../creations/components/Tabs";
 import { TabText } from "@/stores/creationAndProfileStore";
 
 // Create a type that extends TabText to include search-specific tabs
-type SearchTabText = TabText | "User" | "Image";
+type SearchTabText = TabText | "User" | "Media";
 
 // Create an interface for the search tab props
 interface SearchTabProps {
@@ -60,7 +60,7 @@ export default function Tabs({
       <SearchTabBtn
         currentIndex={currentIndex}
         index={1}
-        text="Image"
+        text="Media"
         setCurrentIndex={setCurrentIndex}
         section={section}
       />

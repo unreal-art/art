@@ -72,14 +72,14 @@ export default function Search() {
       </button>
 
       {open && (
-        <div className="fixed z-50  top-0  h-full w-screen bg-gray-950/50">
+        <div className="fixed z-50   top-0  h-full w-screen bg-gray-950/50">
           <div
             onClick={() => setOpen(false)}
             className="m-auto z-50  top-0 left-0 h-screen w-screen bg-gray-950/50"
           ></div>
 
           <div 
-            className="absolute w-full max-w-[1034px] h-[90vh] z-50 top-2 md:top-[5vh] left-0 md:left-60 border-primary-8 border-[1px] bg-primary-12 rounded-xl p-4"
+            className="absolute w-full max-w-[1034px] overflow-hidden h-[90vh] z-50 top-2 md:top-[5vh] left-0 md:left-60 border-primary-8 border-[1px] bg-primary-12 rounded-xl p-4"
             role="dialog"
             aria-modal="true"
             aria-labelledby="search-dialog-title"
@@ -126,7 +126,7 @@ export default function Search() {
               />
             </div>
 
-            <div className="overflow-y-auto h-[70vh]">
+            <div className="overflow-y-auto h-[70vh] ">
               {currentIndex === 0 && (
                 <ErrorBoundary
                   fallback={(

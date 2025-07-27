@@ -37,8 +37,8 @@ const ImageView = dynamic(() => import("./imageView"), {
   loading: () => <div className="w-full h-64 bg-gray-200 animate-pulse"></div>,
 });
 
-// Memoized LazyImage component to prevent unnecessary recreations
-const LazyImage = React.memo(
+// Memoized LazyMedia component to handle both images and videos
+const LazyMedia = React.memo(
   ({
     photo,
     width,
@@ -48,6 +48,7 @@ const LazyImage = React.memo(
     title,
     sizes,
     shouldPrioritize,
+    mediaType,
   }: {
     photo: any;
     width: number;
@@ -57,6 +58,7 @@ const LazyImage = React.memo(
     title?: string;
     sizes?: string;
     shouldPrioritize: boolean;
+    mediaType?: string | null;
   }) => {
     const imageRef = React.useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = useState(shouldPrioritize);
@@ -124,28 +126,50 @@ const LazyImage = React.memo(
         }}
       >
         {isVisible ? (
-          <OptimizedImage
-            fill
-            src={hasError ? "/placeholder-image.jpg" : photo}
-            alt={alt || "Gallery image"}
-            title={title}
-            sizes={responsiveSizes}
-            loading={shouldPrioritize ? "eager" : "lazy"}
-            priority={shouldPrioritize}
-            className="rounded-lg"
-            placeholder={"blurDataURL" in photo ? "blur" : undefined}
-            trackPerformance={process.env.NODE_ENV === "development"}
-            imageName={imageName}
-            onError={(e) => {
-              // Handle image loading failures
-              setHasError(true);
-              const target = e.target as HTMLImageElement;
-              if (target) {
-                target.onerror = null; // Prevent infinite error loop
-                target.src = "/placeholder-image.jpg";
-              }
-            }}
-          />
+          mediaType === 'VIDEO' ? (
+            <div className="relative w-full h-full">
+              <video
+                src={photo.src || photo}
+                className="w-full h-full object-cover rounded-lg"
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                controlsList="nodownload"
+                onMouseEnter={(e) => e.currentTarget.play()}
+                onMouseLeave={(e) => e.currentTarget.pause()}
+              />
+              {/* Video indicator overlay - positioned in bottom right corner */}
+              <div className="absolute bottom-2 right-2">
+                <div className="w-6 h-6 bg-black bg-opacity-70 rounded-full flex items-center justify-center">
+                  <div className="w-0 h-0 border-l-4 border-l-white border-y-2 border-y-transparent ml-0.5"></div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <OptimizedImage
+              fill
+              src={hasError ? "/placeholder-image.jpg" : photo}
+              alt={alt || "Gallery image"}
+              title={title}
+              sizes={responsiveSizes}
+              loading={shouldPrioritize ? "eager" : "lazy"}
+              priority={shouldPrioritize}
+              className="rounded-lg"
+              placeholder={"blurDataURL" in photo ? "blur" : undefined}
+              trackPerformance={process.env.NODE_ENV === "development"}
+              imageName={imageName}
+              onError={(e) => {
+                // Handle image loading failures
+                setHasError(true);
+                const target = e.target as HTMLImageElement;
+                if (target) {
+                  target.onerror = null; // Prevent infinite error loop
+                  target.src = "/placeholder-image.jpg";
+                }
+              }}
+            />
+          )
         ) : (
           // Empty placeholder with correct dimensions
           <div className="w-full h-full rounded-lg bg-primary-13" />
@@ -171,20 +195,23 @@ const LazyImage = React.memo(
   }
 );
 
-// Enhanced renderNextImage with Intersection Observer for more efficient loading
-function renderNextImage(
+// Enhanced media renderer with Intersection Observer for more efficient loading
+function renderNextMedia(
   { alt = "", title, sizes }: RenderImageProps,
   { photo, width, height, index = 0 }: RenderImageContext
 ) {
   // Validate photo object
   if (!photo || typeof photo !== "object") {
-    return <div className="w-full h-64 bg-gray-200">Image data missing</div>;
+    return <div className="w-full h-64 bg-gray-200">Media data missing</div>;
   }
 
   // Use priority loading for the first 4 images only (reduced from 8 for faster initial load)
   const shouldPrioritize = index < 4;
 
-  // Only render the LazyImage component on the client side
+  // Extract media type from the photo object
+  const mediaType = (photo as any)?.media_type;
+
+  // Only render the LazyMedia component on the client side
   return typeof window === "undefined" ? (
     // Server-side placeholder
     <div
@@ -197,7 +224,7 @@ function renderNextImage(
       }}
     />
   ) : (
-    <LazyImage 
+    <LazyMedia 
       photo={photo}
       width={width}
       height={height}
@@ -206,13 +233,14 @@ function renderNextImage(
       title={title}
       sizes={sizes}
       shouldPrioritize={shouldPrioritize}
+      mediaType={mediaType}
     />
   );
 }
 
-function PhotoGallaryTwo() {
+function PhotoGalleryTwo() {
   const [imageIndex, setImageIndex] = useState(-1);
-  const [columns, setColumns] = useState<number | undefined>(undefined);
+  const [columns, setColumns] = useState<number>(2); // Initialize with default value
   const [error, setError] = useState<string | null>(null);
   // Create a dictionary to track already processed photos by their ID
   const [processedPhotoDict, setProcessedPhotoDict] = useState<Record<string, any>>({});
@@ -426,21 +454,31 @@ function PhotoGallaryTwo() {
     return <p className="text-center p-4">No images found.</p>;
   }
 
-  // Wait for column setup (from resize handler)
-  if (columns === undefined) {
-    return <div className="w-full h-64 bg-gray-100 animate-pulse"></div>;
-  }
+  // No need for column check since we initialize with default value
 
   return (
     <div className="w-full">
       {isLoading ? (
-        <div className="flex flex-wrap gap-4">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="w-1/2 sm:w-1/3 md:w-1/4 aspect-square bg-gray-200 animate-pulse"
-            ></div>
-          ))}
+        <div className="masonry-container" style={{ width: "100%" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${columns}, 1fr)`,
+              gap: "10px",
+            }}
+          >
+            {Array(15)
+              .fill(null)
+              .map((_, index) => (
+                <div
+                  key={index}
+                  className="w-full h-48 bg-primary-13 rounded-lg animate-pulse"
+                  style={{
+                    backgroundColor: "#1a1a1a",
+                  }}
+                />
+              ))}
+          </div>
         </div>
       ) : (
         <InfiniteScroll
@@ -460,7 +498,7 @@ function PhotoGallaryTwo() {
                   handleImageIndex={handleImageIndex}
                 />
               ),
-              image: renderNextImage,
+              image: renderNextMedia,
             }}
           />
         </InfiniteScroll>
@@ -540,4 +578,4 @@ const PhotoWithAuthor = memo(function PhotoWithAuthor({
   );
 });
 
-export default memo(PhotoGallaryTwo);
+export default memo(PhotoGalleryTwo);
