@@ -9,7 +9,7 @@ import ProfileInfo from "../../profile/components/profileInfo";
 import { useSearchUsersInfinite } from "@/hooks/useSearchUsersInfinite";
 import { ProfileWithPosts } from "@/queries/post/searchUsersPaginated";
 import { Post } from "$/types/data.types";
-import { getImage } from "../../formattedPhotos";
+import { getMediaUrl } from "../../formattedPhotos";
 import { useFollowStats } from "@/hooks/useFollowStats";
 import { useLikeStat } from "@/hooks/useLikeStat";
 import { useDoesUserFollow } from "@/hooks/useDoesUserFollow";
@@ -170,23 +170,15 @@ export function User({
 
   return (
     <div className="bg-primary-11 rounded-t-3xl my-3">
-      <div className="flex justify-between items-center h-16 py-4 px-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center py-4 px-4 gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <Link href={data.id ? `/home/profile/${data.id}` : "#"}>
-            {/* <Image
-              src={data.avatar_url || "/profile.jpg"}
-              width={40}
-              height={40}
-              alt="profile"
-              className="rounded-full"
-            /> */}
-
             {data.avatar_url ? (
               <OptimizedImage
                 className="rounded-full drop-shadow-lg"
                 src={data.avatar_url}
-                width={24}
-                height={24}
+                width={40}
+                height={40}
                 alt={`${data.username}'s profile picture`}
                 trackPerformance={true}
                 imageName={`profile-${data.id}`}
@@ -194,13 +186,13 @@ export function User({
                 isAvatar={true}
               />
             ) : (
-              <div className="w-6 h-6 bg-gray-300 rounded-full" /> // Fallback avatar
+              <div className="w-10 h-10 bg-gray-300 rounded-full" />
             )}
           </Link>
 
           <Link
             href={data.id ? `/home/profile/${data.id}` : "#"}
-            className="text-primary-1 text-lg w-36 font-normal"
+            className="text-primary-1 text-base sm:text-lg font-normal flex-shrink-0"
           >
             {formatDisplayName(data.username || "") || "Unknown user"}
           </Link>
@@ -209,10 +201,10 @@ export function User({
             <button
               disabled={toggleFollowMutation.isPending || isFollowLoading}
               onClick={handleFollowToggle}
-              className={`flex items-center justify-center gap-1 rounded-full h-8 w-24 px-2 py-1 border-[1px] border-primary-8
+              className={`flex items-center justify-center gap-1 rounded-full h-8 px-3 py-1 border-[1px] border-primary-8 text-xs sm:text-sm whitespace-nowrap
                 ${isFollowing ? "bg-transparent" : "bg-primary-10"}`}
             >
-              <p className="text-primary-5 text-sm">
+              <p className="text-primary-5">
                 {isFollowLoading
                   ? "Loading..."
                   : isFollowing
@@ -223,7 +215,7 @@ export function User({
           )}
         </div>
 
-        <div className="flex gap-x-4 my-4">
+        <div className="flex gap-x-2 sm:gap-x-4 justify-center sm:justify-end">
           <ProfileInfo
             value={(followStats?.followeeCount || 0).toString()}
             title={followStats?.followeeCount === 1 ? "Follower" : "Followers"}
@@ -258,26 +250,24 @@ export function User({
 
 export function UserImage({ post }: { post: Post }) {
   // Default values to avoid errors
-  const imageHash = post.ipfsImages?.[0]?.hash || "";
-  const imageFileName = post.ipfsImages?.[0]?.fileNames?.[0] || "";
-  const author = post.author || "";
   const caption = post.caption || post.prompt || "No caption";
   
   // Track loading state
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  // Only try to get image if we have the required data
-  const imageSrc = useMemo(() => {
-    return imageHash && imageFileName && author
-      ? getImage(imageHash, imageFileName, author)
-      : "/placeholder-image.jpg"; // Fallback image
-  }, [imageHash, imageFileName, author]);
+  // Get media URL based on media type
+  const mediaSrc = useMemo(() => {
+    return getMediaUrl(post);
+  }, [post]);
+
+  // Determine if this is a video
+  const isVideo = post.media_type === 'VIDEO';
 
   return (
     <Link
       href={`/home/photo/${post.id}`}
-      className="relative inline-block w-[306px] cursor-pointer"
+      className="relative inline-block w-[280px] sm:w-[306px] cursor-pointer flex-shrink-0"
     >
       <div className="absolute top-0 flex justify-between text-primary-1 text-sm picture-gradient w-full h-12 items-center px-3 z-10">
         <p>{post.createdAt ? timeAgo(post.createdAt) : "Unknown time"}</p>
@@ -292,23 +282,59 @@ export function UserImage({ post }: { post: Post }) {
           <div className="absolute inset-0 rounded-t-xl bg-primary-10 animate-pulse" />
         )}
         
-        <OptimizedImage
-          src={imageSrc}
-          alt={caption}
-          width={306}
-          height={200}
-          className={`rounded-t-xl aspect-auto object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-          trackPerformance={true}
-          imageName={post.id ? `userSearch-${post.id}` : ""}
-          onLoad={() => setIsLoaded(true)}
-          onError={() => setHasError(true)}
-          loading="lazy"
-        />
+        {isVideo ? (
+          <div className="relative w-[278px] sm:w-[304px] h-[185px] sm:h-[200px]">
+            <video
+              src={mediaSrc}
+              className={`rounded-t-xl w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              controlsList="nodownload"
+              onMouseEnter={(e) => {
+                const video = e.currentTarget;
+                if (video.readyState >= 2) {
+                  video.play().catch(err => console.log('Play failed:', err));
+                }
+              }}
+              onMouseLeave={(e) => {
+                const video = e.currentTarget;
+                video.pause();
+                video.currentTime = 0;
+              }}
+              onLoadedMetadata={(e) => {
+                e.currentTarget.currentTime = 0.1;
+                setIsLoaded(true);
+              }}
+              onError={() => setHasError(true)}
+            />
+            {/* Video indicator overlay */}
+            <div className="absolute bottom-2 right-2">
+              <div className="w-6 h-6 bg-black bg-opacity-70 rounded-full flex items-center justify-center">
+                <div className="w-0 h-0 border-l-4 border-l-white border-y-2 border-y-transparent ml-0.5"></div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <OptimizedImage
+            src={mediaSrc}
+            alt={caption}
+            width={278}
+            height={185}
+            className={`rounded-t-xl object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} sm:w-[304px] sm:h-[200px]`}
+            trackPerformance={true}
+            imageName={post.id ? `userSearch-${post.id}` : ""}
+            onLoad={() => setIsLoaded(true)}
+            onError={() => setHasError(true)}
+            loading="lazy"
+          />
+        )}
         
         {/* Show error state */}
         {hasError && (
           <div className="absolute inset-0 rounded-t-xl bg-primary-11 flex items-center justify-center">
-            <p className="text-primary-5 text-sm">Failed to load image</p>
+            <p className="text-primary-5 text-sm">Failed to load {isVideo ? 'video' : 'image'}</p>
           </div>
         )}
       </div>

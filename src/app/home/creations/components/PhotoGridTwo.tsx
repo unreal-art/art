@@ -1,13 +1,8 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import { ErrorBoundary } from "@/app/components/errorBoundary";
 import OptimizedImage from "@/app/components/OptimizedImage";
-import Image from "next/image";
-import { truncateText } from "@/utils";
-import { timeAgo } from "@/app/libs/timeAgo";
-import { OptionMenuIcon } from "@/app/components/icons";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import NoItemFound from "./NoItemFound";
 import InfiniteScroll from "../../components/InfiniteScroll";
 import dynamic from "next/dynamic";
@@ -47,21 +42,6 @@ interface TabProps {
   isFetchingNextPage?: boolean;
 }
 
-interface PhotoData {
-  id: number;
-  src: string;
-  width: number;
-  height: number;
-  alt: string;
-  caption?: string;
-  prompt?: string;
-  createdAt: string;
-  ipfsImages?: Array<{
-    hash: string;
-    fileNames: string[];
-  }>;
-  author: string;
-}
 
 interface TransformedPhoto {
   id: string;
@@ -73,6 +53,7 @@ interface TransformedPhoto {
   prompt: string;
   createdAt: string;
   author: string;
+  media_type?: string | null;
 }
 
 // Dynamically import ImageView with no SSR since it's only needed on client
@@ -95,11 +76,7 @@ export default function PhotoGridTwo({
   fetchNextPage = () => {},
   isFetchingNextPage = false,
 }: TabProps): ReactElement {
-  const containerRef = useRef<HTMLDivElement>(null);
   const [photos, setPhotos] = useState<TransformedPhoto[]>([]);
-  const [transformedPosts, setTransformedPosts] = useState<TransformedPhoto[]>(
-    []
-  );
   const [stableLoading, setStableLoading] = useState(true); // Stable loading state to prevent flashing
   const [imageIndex, setImageIndex] = useState(-1);
   const [size, setSize] = useState<number>(GRID_SIZES.LG);
@@ -116,27 +93,58 @@ export default function PhotoGridTwo({
     if (data?.pages) {
       const allPosts = data.pages.flatMap((page: any) => page.data || []);
 
-      // Transform the posts into photo format
+      // Transform the posts into photo format - handle both images and videos
       const newTransformedPosts = allPosts
         .filter((post: Post) => {
-          const image = post.ipfsImages?.[0];
-          return image?.hash && image?.fileNames?.[0];
+          // Include posts with images (IMAGE media type)
+          if (post.media_type === 'IMAGE' || !post.media_type) {
+            const image = post.ipfsImages?.[0];
+            return image?.hash && image?.fileNames?.[0];
+          }
+          // Include posts with videos (VIDEO media type)
+          if (post.media_type === 'VIDEO') {
+            return post.video_data;
+          }
+          return false;
         })
         .map((post: Post): TransformedPhoto => {
-          const image = post.ipfsImages?.[0];
-          // We already filtered out null cases above
-          // const imageUrl = `${
-          //   process.env.NEXT_PUBLIC_LIGHTHOUSE_GATE_WAY || ""
-          // }${image!.hash}/${image!.fileNames[0]}`;
+          let mediaUrl: string = ""; // Initialize with default value
+          
+          // Handle video media type
+          if (post.media_type === 'VIDEO' && post.video_data) {
+            // Extract video URL from video_data
+            const videoData = Array.isArray(post.video_data) ? post.video_data[0] : post.video_data;
+            if (videoData && typeof videoData === 'object' && 'hash' in videoData) {
+              // For videos, the hash field contains the direct URL
+              const videoUrl = (videoData as any).hash;
+              // Check if it's already a full URL
+              if (videoUrl && (videoUrl.startsWith('http://') || videoUrl.startsWith('https://'))) {
+                mediaUrl = videoUrl;
+              } else {
+                // Fallback to getImage if it's actually a hash
+                if ('fileNames' in videoData && (videoData as any).fileNames?.[0]) {
+                  mediaUrl = getImage(videoUrl, (videoData as any).fileNames[0], post.author);
+                } else {
+                  mediaUrl = "";
+                }
+              }
+            } else {
+              // Fallback for different video data structures
+              mediaUrl = (videoData as any)?.url || (videoData as any)?.src || (videoData as any)?.hash || "";
+            }
+          } else {
+            // Handle image media type (default behavior)
+            const image = post.ipfsImages?.[0];
+            mediaUrl = getImage(
+              image!.hash,
+              image!.fileNames?.[0],
+              post.author
+            );
+          }
 
-          const imageUrl = getImage(
-            image!.hash,
-            image!.fileNames?.[0],
-            post.author
-          );
           return {
             id: post.id.toString(),
-            src: imageUrl,
+            src: mediaUrl,
             width: size,
             height: size,
             alt: post.caption || post.prompt || "",
@@ -144,10 +152,10 @@ export default function PhotoGridTwo({
             prompt: post.prompt || "",
             createdAt: post.createdAt,
             author: post.author,
+            media_type: post.media_type,
           };
         });
 
-      setTransformedPosts(newTransformedPosts);
 
       // Turn off loading only when we have posts or we're sure we're done loading
       if (newTransformedPosts.length > 0 || !isLoading) {
@@ -178,7 +186,6 @@ export default function PhotoGridTwo({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    let timeoutId: NodeJS.Timeout;
     const handleResize = () => {
       const width = window.innerWidth;
       if (width >= BREAKPOINTS.TWO_XL) {
@@ -224,23 +231,49 @@ export default function PhotoGridTwo({
             className="relative bg-primary-13 rounded-lg overflow-hidden"
             style={{ width, height }}
           >
-            <OptimizedImage
-              src={photo.src}
-              alt={photo.alt || ""}
-              width={width}
-              height={height}
-              className="object-cover w-full h-full transition-opacity duration-300"
-              style={{ opacity: 1, position: "relative" }} // Removed z-index to prevent conflicts
-              imageName={`creation-${photo.id}`}
-              trackPerformance={true}
-              priority={parseInt(photo.id) < 4} // Prioritize first few images
-            />
+            {photo.media_type === 'VIDEO' ? (
+              <div className="relative w-full h-full">
+                <video
+                  src={photo.src}
+                  width={width}
+                  height={height}
+                  className="object-cover w-full h-full transition-opacity duration-300"
+                  style={{ opacity: 1, position: "relative" }}
+                  controls={false}
+                  controlsList="nodownload"
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  onMouseEnter={(e) => e.currentTarget.play()}
+                  onMouseLeave={(e) => e.currentTarget.pause()}
+                />
+                {/* Video indicator overlay - positioned in bottom right corner */}
+                <div className="absolute bottom-2 right-2">
+                  <div className="w-6 h-6 bg-black bg-opacity-70 rounded-full flex items-center justify-center">
+                    <div className="w-0 h-0 border-l-4 border-l-white border-y-2 border-y-transparent ml-0.5"></div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <OptimizedImage
+                src={photo.src}
+                alt={photo.alt || ""}
+                width={width}
+                height={height}
+                className="object-cover w-full h-full transition-opacity duration-300"
+                style={{ opacity: 1, position: "relative" }} // Removed z-index to prevent conflicts
+                imageName={`creation-${photo.id}`}
+                trackPerformance={true}
+                priority={parseInt(photo.id) < 4} // Prioritize first few images
+              />
+            )}
             {/* Caption overlay with lower z-index to not interfere with PhotoOverlay elements */}
             <div
               className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent"
               style={{ opacity: 1 }}
             >
-              <p className="text-white text-xs truncate">
+              <p className="text-white text-xs truncate md:hidden">
                 {photo.caption || photo.prompt}
               </p>
             </div>

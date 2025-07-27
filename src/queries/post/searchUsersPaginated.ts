@@ -53,25 +53,28 @@ export const searchUsersPaginated = async (
     avatar_url: profile.avatar_url,
     createdAt: profile.createdAt ?? "",
     posts: Array.isArray(profile.posts)
-      ? profile.posts.slice(0, 10).map((post) => ({
-          ...post, // Spread all post fields dynamically
-          createdAt: post.createdAt ?? "",
-          ipfsImages: (() => {
-            if (Array.isArray(post.ipfsImages))
-              return post.ipfsImages as UploadResponse[];
-            if (typeof post.ipfsImages === "string") {
-              try {
-                return JSON.parse(post.ipfsImages) as UploadResponse[];
-              } catch {
-                logWarning("Failed to parse ipfsImages", {
-                  ipfsImages: post.ipfsImages,
-                });
-                return null;
+      ? profile.posts
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort posts by createdAt in descending order (most recent first)
+          .slice(0, 10)
+          .map((post) => ({
+            ...post, // Spread all post fields dynamically
+            createdAt: post.createdAt ?? "",
+            ipfsImages: (() => {
+              if (Array.isArray(post.ipfsImages))
+                return post.ipfsImages as UploadResponse[];
+              if (typeof post.ipfsImages === "string") {
+                try {
+                  return JSON.parse(post.ipfsImages) as UploadResponse[];
+                } catch {
+                  logWarning("Failed to parse ipfsImages", {
+                    ipfsImages: post.ipfsImages,
+                  });
+                  return null;
+                }
               }
-            }
-            return null;
-          })(),
-        }))
+              return null;
+            })(),
+          }))
       : [],
   }));
 };

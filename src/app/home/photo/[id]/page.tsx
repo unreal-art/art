@@ -37,7 +37,7 @@ import { Following } from "../../components/followingBtn";
 import { ErrorBoundary } from "@/app/components/errorBoundary";
 
 const PhotoGallaryTwo = dynamic(
-  () => import("../../components/photoGallaryTwo"),
+  () => import("../../components/photoGalleryTwo"),
   {
     ssr: false,
   }
@@ -90,15 +90,14 @@ function GenerationContent() {
   useEffect(() => {
     // Example: Fetch data dynamically
     const fetchData = async () => {
+      // Get media URL for the first item (works for both images and videos)
+      const mediaUrl = getMediaUrl(0);
+      
       // Simulate API response
       const data = {
         title: post?.caption || truncateText(post?.prompt, 10),
         description: truncateText(post?.prompt, 100),
-        image: getImage(
-          (post?.ipfsImages as UploadResponse[])?.[0]?.hash,
-          (post?.ipfsImages as UploadResponse[])?.[0]?.fileNames[0],
-          post?.author as string
-        ),
+        image: mediaUrl,
       };
 
       setDynamicTitle(data.title);
@@ -111,7 +110,9 @@ function GenerationContent() {
       });
     };
 
-    fetchData();
+    if (post) {
+      fetchData();
+    }
   }, [post]);
 
   // Sync state with post.isPrivate whenever post changes
@@ -215,12 +216,42 @@ function GenerationContent() {
     return <ViewSkeleton />;
   }
 
-  // Get the selected image or default to the first one
-  const mainImage = getImage(
-    (post?.ipfsImages as UploadResponse[])?.[selectedImageIndex]?.hash,
-    (post?.ipfsImages as UploadResponse[])?.[selectedImageIndex]?.fileNames[0],
-    post?.author as string
-  );
+  // Helper function to get media URL for both images and videos
+  const getMediaUrl = (index: number = 0) => {
+    if (post?.media_type === 'VIDEO' && post?.video_data) {
+      // Handle video data
+      const videoData = Array.isArray(post.video_data) ? post.video_data[index] : post.video_data;
+      if (videoData && typeof videoData === 'object' && 'hash' in videoData) {
+        // For videos, the hash field contains the direct URL
+        const videoUrl = (videoData as any).hash;
+        // Check if it's already a full URL
+        if (videoUrl && (videoUrl.startsWith('http://') || videoUrl.startsWith('https://'))) {
+          return videoUrl;
+        }
+        // Fallback to getImage if it's actually a hash
+        if ('fileNames' in videoData && (videoData as any).fileNames?.[0]) {
+          return getImage(videoUrl, (videoData as any).fileNames[0], post?.author as string);
+        }
+      }
+      // Fallback for different video data structures
+      if (videoData && typeof videoData === 'object') {
+        return (videoData as any)?.url || (videoData as any)?.src || (videoData as any)?.hash || "";
+      }
+      return "";
+    } else {
+      // Handle image data (existing behavior)
+      return getImage(
+        (post?.ipfsImages as UploadResponse[])?.[index]?.hash,
+        (post?.ipfsImages as UploadResponse[])?.[index]?.fileNames[0],
+        post?.author as string
+      );
+    }
+  };
+
+  // Get the selected media URL
+  const mainMediaUrl = getMediaUrl(selectedImageIndex);
+  console.log(mainMediaUrl)
+  
   return (
     <div className="w-full">
       <div className="hidden md:flex flex-col justify-center items-center pt-5 w-full">
@@ -279,26 +310,35 @@ function GenerationContent() {
               <ErrorBoundary
                 fallback={
                   <div className="w-[306px] h-[408px] sm:w-[350px] sm:h-[450px] md:w-[400px] md:h-[500px] lg:w-[450px] lg:h-[550px] xl:w-[500px] xl:h-[600px] flex items-center justify-center bg-primary-13 rounded-lg">
-                    <p className="text-primary-3">Unable to load image</p>
+                    <p className="text-primary-3">Unable to load {post?.media_type === 'VIDEO' ? 'video' : 'image'}</p>
                   </div>
                 }
               >
                 <div className="relative w-[306px] h-[408px] sm:w-[350px] sm:h-[450px] md:w-[400px] md:h-[500px] lg:w-[450px] lg:h-[550px] xl:w-[500px] xl:h-[600px]">
-                  <OptimizedImage
-                    className="object-contain w-full h-full"
-                    src={mainImage}
-                    width={0}
-                    height={0}
-                    alt={`unreal-image-${
-                      (post?.ipfsImages as UploadResponse[])?.[0]?.fileNames[0]
-                    }`}
-                    priority={true}
-                    loading="eager"
-                    trackPerformance={true}
-                    imageName={`view-${
-                      (post?.ipfsImages as UploadResponse[])?.[0]?.fileNames[0]
-                    }`}
-                  />
+                  {post?.media_type === 'VIDEO' ? (
+                    <video
+                      className="object-contain w-full h-full"
+                      src={mainMediaUrl}
+                      controls
+                      controlsList="nodownload"
+                      preload="metadata"
+                      style={{ maxWidth: '100%', maxHeight: '100%' }}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <OptimizedImage
+                      className="object-contain w-full h-full"
+                      src={mainMediaUrl}
+                      width={0}
+                      height={0}
+                      alt={`unreal-${post?.media_type === 'VIDEO' ? 'video' : 'image'}-${post?.id}`}
+                      priority={true}
+                      loading="eager"
+                      trackPerformance={true}
+                      imageName={`view-${post?.id}`}
+                    />
+                  )}
                 </div>
               </ErrorBoundary>
             </div>
@@ -334,23 +374,76 @@ function GenerationContent() {
               <p className="text-primary-5 text-lg">Output quantity</p>
 
               <div className="py-2 relative flex gap-2 overflow-x-auto">
-                {(post?.ipfsImages as UploadResponse[])?.map((image, index) => (
-                  <Image
-                    key={index}
-                    src={getImage(
-                      image.hash,
-                      image.fileNames[0],
-                      post?.author as string
-                    )}
-                    width={98}
-                    height={128}
-                    alt="generated"
-                    className={`hover:opacity-100 transition-opacity duration-200 cursor-pointer ${
-                      selectedImageIndex == index ? "opacity-100" : "opacity-20"
-                    }`}
-                    onClick={() => setSelectedImageIndex(index)}
-                  />
-                ))}
+                {post?.media_type === 'VIDEO' ? (
+                  // Handle video thumbnails
+                  Array.isArray(post?.video_data) ? post.video_data.map((_: any, index: number) => (
+                    <div
+                      key={index}
+                      className={`relative hover:opacity-100 transition-opacity duration-200 cursor-pointer ${
+                        selectedImageIndex == index ? "opacity-100" : "opacity-20"
+                      }`}
+                      onClick={() => setSelectedImageIndex(index)}
+                    >
+                      <video
+                        src={getMediaUrl(index)}
+                        width={98}
+                        height={128}
+                        className="object-cover"
+                        preload="metadata"
+                        controlsList="nodownload"
+                        muted
+                      />
+                      {/* Video indicator overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                        <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                          <div className="w-0 h-0 border-l-4 border-l-black border-y-2 border-y-transparent ml-1"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )) : (
+                    // Single video case
+                    <div
+                      className={`relative hover:opacity-100 transition-opacity duration-200 cursor-pointer ${
+                        selectedImageIndex == 0 ? "opacity-100" : "opacity-20"
+                      }`}
+                      onClick={() => setSelectedImageIndex(0)}
+                    >
+                      <video
+                        src={getMediaUrl(0)}
+                        width={98}
+                        height={128}
+                        className="object-cover"
+                        preload="metadata"
+                        muted
+                      />
+                      {/* Video indicator overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                        <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+                          <div className="w-0 h-0 border-l-4 border-l-black border-y-2 border-y-transparent ml-1"></div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  // Handle image thumbnails (existing behavior)
+                  (post?.ipfsImages as UploadResponse[])?.map((image, index) => (
+                    <Image
+                      key={index}
+                      src={getImage(
+                        image.hash,
+                        image.fileNames[0],
+                        post?.author as string
+                      )}
+                      width={98}
+                      height={128}
+                      alt="generated"
+                      className={`hover:opacity-100 transition-opacity duration-200 cursor-pointer ${
+                        selectedImageIndex == index ? "opacity-100" : "opacity-20"
+                      }`}
+                      onClick={() => setSelectedImageIndex(index)}
+                    />
+                  ))
+                )}
               </div>
             </div>
 
@@ -372,12 +465,9 @@ function GenerationContent() {
             <div className="grid grid-cols-2 gap-6">
               <Feature title="Model" content="Dart 2.0" />
               <Feature title="Style" content="Default" />
-              <ImageResolutionFeature
-                imageUrl={getImage(
-                  (post?.ipfsImages as UploadResponse[])?.[0]?.hash,
-                  (post?.ipfsImages as UploadResponse[])?.[0]?.fileNames[0],
-                  post?.author as string
-                )}
+              <MediaResolutionFeature
+                mediaUrl={getMediaUrl(0)}
+                mediaType={post?.media_type || 'IMAGE'}
               />
               <Feature title="Rendering" content="Default" />
               <Feature title="Seed" content={post?.seed?.toString() || ""} />
@@ -432,16 +522,29 @@ export default function Generation() {
   );
 }
 
-function ImageResolutionFeature({ imageUrl }: { imageUrl: string }) {
+function MediaResolutionFeature({ mediaUrl, mediaType }: { mediaUrl: string; mediaType: string }) {
   const [resolution, setResolution] = useState("Loading...");
 
   useEffect(() => {
-    if (imageUrl) {
-      getImageResolution(imageUrl)
-        .then((res) => setResolution(res as string))
-        .catch(() => setResolution("Error loading image"));
+    if (mediaUrl) {
+      if (mediaType === 'VIDEO') {
+        // For videos, we can try to get dimensions from video element
+        const video = document.createElement('video');
+        video.src = mediaUrl;
+        video.onloadedmetadata = () => {
+          setResolution(`${video.videoWidth}x${video.videoHeight}`);
+        };
+        video.onerror = () => {
+          setResolution("Error loading video");
+        };
+      } else {
+        // For images, use existing function
+        getImageResolution(mediaUrl)
+          .then((res) => setResolution(res as string))
+          .catch(() => setResolution("Error loading image"));
+      }
     }
-  }, [imageUrl]);
+  }, [mediaUrl, mediaType]);
 
   return <Feature title="Resolution" content={resolution} />;
 }

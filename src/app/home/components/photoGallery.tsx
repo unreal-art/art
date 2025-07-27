@@ -34,8 +34,8 @@ import OptimizedImage from "@/app/components/OptimizedImage";
 import { capitalizeFirstAlpha, formatDisplayName } from "@/utils";
 import { Color } from "three/src/Three.Core.js";
 
-// Memoized LazyImage component to prevent unnecessary recreations
-const LazyImage = React.memo(
+// Memoized LazyMedia component to handle both images and videos
+const LazyMedia = React.memo(
   ({
     photo,
     width,
@@ -45,6 +45,7 @@ const LazyImage = React.memo(
     title,
     sizes,
     shouldPrioritize,
+    mediaType,
   }: {
     photo: any;
     width: number;
@@ -54,6 +55,7 @@ const LazyImage = React.memo(
     title?: string;
     sizes?: string;
     shouldPrioritize: boolean;
+    mediaType?: string | null;
   }) => {
     const imageRef = React.useRef<HTMLDivElement>(null);
     const [isVisible, setIsVisible] = React.useState(shouldPrioritize);
@@ -119,19 +121,41 @@ const LazyImage = React.memo(
         }}
       >
         {isVisible ? (
-          <OptimizedImage
-            fill
-            src={photo}
-            alt={alt || "Gallery image"}
-            title={title}
-            sizes={responsiveSizes}
-            className="rounded-lg"
-            loading={shouldPrioritize ? "eager" : "lazy"}
-            priority={shouldPrioritize}
-            placeholder={"blurDataURL" in photo ? "blur" : undefined}
-            trackPerformance={process.env.NODE_ENV === "development"}
-            imageName={imageName}
-          />
+          mediaType === 'VIDEO' ? (
+            <div className="relative w-full h-full">
+              <video
+                src={photo.src || photo}
+                className="w-full h-full object-cover rounded-lg"
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                controlsList="nodownload"
+                onMouseEnter={(e) => e.currentTarget.play()}
+                onMouseLeave={(e) => e.currentTarget.pause()}
+              />
+              {/* Video indicator overlay - positioned in bottom right corner */}
+              <div className="absolute bottom-2 right-2">
+                <div className="w-6 h-6 bg-black bg-opacity-70 rounded-full flex items-center justify-center">
+                  <div className="w-0 h-0 border-l-4 border-l-white border-y-2 border-y-transparent ml-0.5"></div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <OptimizedImage
+              fill
+              src={photo}
+              alt={alt || "Gallery image"}
+              title={title}
+              sizes={responsiveSizes}
+              className="rounded-lg"
+              loading={shouldPrioritize ? "eager" : "lazy"}
+              priority={shouldPrioritize}
+              placeholder={"blurDataURL" in photo ? "blur" : undefined}
+              trackPerformance={process.env.NODE_ENV === "development"}
+              imageName={imageName}
+            />
+          )
         ) : (
           // Empty placeholder with correct dimensions
           <div className="w-full h-full rounded-lg bg-primary-13" />
@@ -157,16 +181,19 @@ const LazyImage = React.memo(
   },
 );
 
-// Enhanced image renderer with Intersection Observer for more efficient loading
-function renderNextImage(
+// Enhanced media renderer with Intersection Observer for more efficient loading
+function renderNextMedia(
   { alt = "", title, sizes }: RenderImageProps,
   { photo, width, height, index = 0 }: RenderImageContext,
 ) {
-  // Use priority loading for the first 4 images (eagerly loaded)
+  // Use priority loading for the first 4 items (eagerly loaded)
   // Reduced from 8 to 4 to improve initial load time
   const shouldPrioritize = index < 4;
 
-  // Only render the LazyImage component on the client side
+  // Extract media type from the photo object
+  const mediaType = (photo as any)?.media_type;
+
+  // Only render the LazyMedia component on the client side
   return typeof window === "undefined" ? (
     // Server-side placeholder
     <div
@@ -179,7 +206,7 @@ function renderNextImage(
       }}
     />
   ) : (
-    <LazyImage
+    <LazyMedia
       photo={photo}
       width={width}
       height={height}
@@ -188,11 +215,12 @@ function renderNextImage(
       title={title}
       sizes={sizes}
       shouldPrioritize={shouldPrioritize}
+      mediaType={mediaType}
     />
   );
 }
 
-export default function PhotoGallary() {
+export default function PhotoGallery() {
   const [imageIndex, setImageIndex] = useState(-1);
   // Always initialize with a stable value to prevent layout shifts
   const [columns, setColumns] = useState<number>(2);
@@ -432,7 +460,7 @@ export default function PhotoGallary() {
                     handleImageIndex={handleImageIndex}
                   />
                 ),
-                image: renderNextImage,
+                image: renderNextMedia,
               }}
             />
           )}

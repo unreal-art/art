@@ -25,6 +25,7 @@ export interface ExtendedRenderPhotoContext extends RenderPhotoContext {
     author: string;
     createdAt: string;
     caption?: string;
+    media_type?: string | null;
   };
 }
 
@@ -67,7 +68,10 @@ export default function PhotoOverlay({
 
   // console.log(context.photo.createdAt);
   const handleCommentClick = () => {
-    setImageIndex(); // or any specific value you want to pass
+    // Open the image/video view
+    if (typeof setImageIndex === 'function') {
+      setImageIndex();
+    }
   };
 
   const { data: comments, isLoading: loadingComments } = useComments(

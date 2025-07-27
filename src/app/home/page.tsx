@@ -11,8 +11,8 @@ import { createClient } from "$/supabase/client";
 import { updateUserTorusId } from "@/queries/torus";
 import { ErrorBoundary } from "../components/errorBoundary";
 
-// Dynamically import PhotoGallary with proper loading state
-const PhotoGallary = dynamic(() => import("./components/photoGallary"), {
+// Dynamically import PhotoGallery with proper loading state
+const PhotoGallary = dynamic(() => import("./components/photoGallery"), {
   ssr: false, // Changed to false since it uses browser-only APIs
   loading: () => (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-2 w-full">

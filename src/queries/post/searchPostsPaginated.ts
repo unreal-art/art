@@ -62,5 +62,7 @@ export const searchPostsPaginated = async (
       }
       return null;
     })(),
+    media_type: post.media_type || null,
+    video_data: post.video_data || null,
   }));
 };

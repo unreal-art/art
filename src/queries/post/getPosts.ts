@@ -90,6 +90,8 @@ export async function getTopMintedPosts(
       : typeof post.ipfsImages === "string"
       ? (JSON.parse(post.ipfsImages) as UploadResponse[])
       : null,
+    media_type: post.media_type || null,
+    video_data: post.video_data || null,
   }));
 }
 

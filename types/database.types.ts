@@ -386,6 +386,7 @@ export type Database = {
           n: number | null
           prompt: string | null
           seed: number | null
+          video_data: Json | null
         }
         Insert: {
           author?: string
@@ -404,6 +405,7 @@ export type Database = {
           n?: number | null
           prompt?: string | null
           seed?: number | null
+          video_data?: Json | null
         }
         Update: {
           author?: string
@@ -422,6 +424,7 @@ export type Database = {
           n?: number | null
           prompt?: string | null
           seed?: number | null
+          video_data?: Json | null
         }
         Relationships: [
           {

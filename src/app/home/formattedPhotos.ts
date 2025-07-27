@@ -18,9 +18,40 @@ export interface ExtendedPhoto extends Photo {
   seed?: number;
   id: string;
   caption?: string;
+  media_type?: string | null;
 }
 
 const breakpoints = [1080, 640, 384, 256, 128, 96, 64, 48];
+
+// Helper function to get media URL for both images and videos
+export const getMediaUrl = (post: Post): string => {
+  if (post.media_type === 'VIDEO' && post.video_data) {
+    // Handle video data
+    const videoData = Array.isArray(post.video_data) ? post.video_data[0] : post.video_data;
+    if (videoData && typeof videoData === 'object' && 'hash' in videoData) {
+      // For videos, the hash field contains the direct URL
+      const videoUrl = (videoData as any).hash;
+      // Check if it's already a full URL
+      if (videoUrl && (videoUrl.startsWith('http://') || videoUrl.startsWith('https://'))) {
+        return videoUrl;
+      }
+      // Fallback to getImage if it's actually a hash
+      if ('fileNames' in videoData && (videoData as any).fileNames?.[0]) {
+        return getImage(videoUrl, (videoData as any).fileNames[0], post.author);
+      }
+    }
+    // Fallback for different video data structures
+    if (videoData && typeof videoData === 'object') {
+      return (videoData as any)?.url || (videoData as any)?.src || (videoData as any)?.hash || "";
+    }
+    return "";
+  } else {
+    // Handle image data (existing behavior)
+    const image = post.ipfsImages?.[0];
+    if (!image || !image.hash || !image.fileNames?.[0]) return "";
+    return getImage(image.hash, image.fileNames[0], post.author);
+  }
+};
 
 // Function to fetch the image
 export const getImage = (
@@ -74,11 +105,14 @@ export const formattedPhotosForGallery = (pages: Page[]): ExtendedPhoto[] => {
   return pages
     .flatMap((page) =>
       page.data.map((post: Post, index) => {
-        const image = post.ipfsImages?.[0];
-        if (!image || !image.hash || !image.fileNames?.[0]) return null;
-        const assetHash = image.hash;
-        const fileName = image.fileNames[0];
-        const imageUrl = getImage(assetHash, fileName, post.author);
+        // Check if post has valid media (either images or videos)
+        const hasValidImage = post.ipfsImages?.[0]?.hash && post.ipfsImages?.[0]?.fileNames?.[0];
+        const hasValidVideo = post.media_type === 'VIDEO' && post.video_data;
+        
+        if (!hasValidImage && !hasValidVideo) return null;
+        
+        // Get media URL for both images and videos
+        const mediaUrl = getMediaUrl(post);
 
         // More dynamic width variations for visual interest
         const baseWidths = [300, 320, 340, 360, 380, 400];
@@ -154,13 +188,13 @@ export const formattedPhotosForGallery = (pages: Page[]): ExtendedPhoto[] => {
 
         return {
           id: post.id.toString(),
-          src: imageUrl,
+          src: mediaUrl,
           key: post.id.toString(),
           alt: post.prompt,
           width: baseWidth,
           height: constrainedHeight,
           srcSet: breakpoints.map((breakpoint) => ({
-            src: imageUrl,
+            src: mediaUrl,
             width: breakpoint,
             height: Math.round(breakpoint / actualAspectRatio),
           })),
@@ -175,6 +209,7 @@ export const formattedPhotosForGallery = (pages: Page[]): ExtendedPhoto[] => {
           isPrivate: post.isPrivate,
           caption: post.caption,
           seed: post.seed,
+          media_type: post.media_type,
         } as ExtendedPhoto;
       }),
     )
