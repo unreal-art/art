@@ -35,6 +35,7 @@ import { IPhoto } from "@/app/libs/interfaces";
 import OptimizedImage from "@/app/components/OptimizedImage";
 import { Following } from "../../components/followingBtn";
 import { ErrorBoundary } from "@/app/components/errorBoundary";
+import VideoStatusPoll from "../../components/videoStatusPoll";
 
 const PhotoGallaryTwo = dynamic(
   () => import("../../components/photoGalleryTwo"),
@@ -80,6 +81,49 @@ function GenerationContent() {
   );
   const [commentPhoto, setCommentPhoto] = useState<IPhoto | boolean>(false);
   const [dynamicImage, setDynamicImage] = useState("/default-image.jpg");
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+
+  // Handle video ready callback - moved to top to maintain hook order
+  const handleVideoReady = useCallback((url: string) => {
+    setVideoUrl(url);
+    // Refresh the post data to get updated video_data
+    queryClient.invalidateQueries({ queryKey: ["post", postId] });
+  }, [queryClient, postId]);
+
+  // Helper function to get media URL for both images and videos - moved before useEffect
+  const getMediaUrl = useCallback((index: number = 0) => {
+    if (post?.media_type === 'VIDEO') {
+      // For video posts, only return URL if we have video_data
+      if (post?.video_data) {
+        const videoData = Array.isArray(post.video_data) ? post.video_data[index] : post.video_data;
+        if (videoData && typeof videoData === 'object' && 'hash' in videoData) {
+          // For videos, the hash field contains the direct URL
+          const videoUrl = (videoData as any).hash;
+          // Check if it's already a full URL
+          if (videoUrl && (videoUrl.startsWith('http://') || videoUrl.startsWith('https://'))) {
+            return videoUrl;
+          }
+          // Fallback to getImage if it's actually a hash
+          if ('fileNames' in videoData && (videoData as any).fileNames?.[0]) {
+            return getImage(videoUrl, (videoData as any).fileNames[0], post?.author as string);
+          }
+        }
+        // Fallback for different video data structures
+        if (videoData && typeof videoData === 'object') {
+          return (videoData as any)?.url || (videoData as any)?.src || (videoData as any)?.hash || "";
+        }
+      }
+      // Return empty string for video posts without video_data (don't fall back to images)
+      return "";
+    } else {
+      // Handle image data (existing behavior)
+      return getImage(
+        (post?.ipfsImages as UploadResponse[])?.[index]?.hash,
+        (post?.ipfsImages as UploadResponse[])?.[index]?.fileNames[0],
+        post?.author as string
+      );
+    }
+  }, [post]);
 
   useEffect(() => {
     if (!loadingUser && !loadingPost && post) {
@@ -216,41 +260,27 @@ function GenerationContent() {
     return <ViewSkeleton />;
   }
 
-  // Helper function to get media URL for both images and videos
-  const getMediaUrl = (index: number = 0) => {
-    if (post?.media_type === 'VIDEO' && post?.video_data) {
-      // Handle video data
-      const videoData = Array.isArray(post.video_data) ? post.video_data[index] : post.video_data;
-      if (videoData && typeof videoData === 'object' && 'hash' in videoData) {
-        // For videos, the hash field contains the direct URL
-        const videoUrl = (videoData as any).hash;
-        // Check if it's already a full URL
-        if (videoUrl && (videoUrl.startsWith('http://') || videoUrl.startsWith('https://'))) {
-          return videoUrl;
-        }
-        // Fallback to getImage if it's actually a hash
-        if ('fileNames' in videoData && (videoData as any).fileNames?.[0]) {
-          return getImage(videoUrl, (videoData as any).fileNames[0], post?.author as string);
-        }
-      }
-      // Fallback for different video data structures
-      if (videoData && typeof videoData === 'object') {
-        return (videoData as any)?.url || (videoData as any)?.src || (videoData as any)?.hash || "";
-      }
-      return "";
-    } else {
-      // Handle image data (existing behavior)
-      return getImage(
-        (post?.ipfsImages as UploadResponse[])?.[index]?.hash,
-        (post?.ipfsImages as UploadResponse[])?.[index]?.fileNames[0],
-        post?.author as string
-      );
-    }
-  };
 
   // Get the selected media URL
   const mainMediaUrl = getMediaUrl(selectedImageIndex);
-  console.log(mainMediaUrl)
+  console.log('mainMediaUrl:', mainMediaUrl)
+
+  // Check if this is a video post without video data yet (need polling)
+  const needsVideoPolling = post?.media_type === 'VIDEO' && 
+    post?.jobId && 
+    (!post?.video_data || 
+     (Array.isArray(post.video_data) && post.video_data.length === 0) || 
+     mainMediaUrl === "" || 
+     !mainMediaUrl);
+
+  console.log('Video polling check:', {
+    mediaType: post?.media_type,
+    jobId: post?.jobId,
+    hasVideoData: !!post?.video_data,
+    videoDataLength: Array.isArray(post?.video_data) ? post.video_data.length : 'not array',
+    mainMediaUrl,
+    needsVideoPolling
+  });
   
   return (
     <div className="w-full">
@@ -315,7 +345,15 @@ function GenerationContent() {
                 }
               >
                 <div className="relative w-[306px] h-[408px] sm:w-[350px] sm:h-[450px] md:w-[400px] md:h-[500px] lg:w-[450px] lg:h-[550px] xl:w-[500px] xl:h-[600px]">
-                  {post?.media_type === 'VIDEO' ? (
+                  {needsVideoPolling && post?.id && post?.jobId ? (
+                    // Show video status polling component while video is being generated
+                    <VideoStatusPoll 
+                      postId={post.id} 
+                      jobId={post.jobId} 
+                      onVideoReady={handleVideoReady} 
+                    />
+                  ) : post?.media_type === 'VIDEO' ? (
+                    // Show video once it's ready
                     <video
                       className="object-contain w-full h-full"
                       src={mainMediaUrl}
@@ -327,6 +365,7 @@ function GenerationContent() {
                       Your browser does not support the video tag.
                     </video>
                   ) : (
+                    // Show image
                     <OptimizedImage
                       className="object-contain w-full h-full"
                       src={mainMediaUrl}

@@ -1,6 +1,6 @@
 "use client";
 import { useCreateJob } from "@/hooks/useCreateJob";
-//import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "$/supabase/client";
 import { useState } from "react";
 import { useUser } from "@/hooks/useUser";
@@ -25,17 +25,14 @@ export default function GenerateTextField({
   open,
   setOpen,
 }: GenerateTextFieldProps) {
+  const router = useRouter();
   const { user, refetchUser } = useUser();
   const { mutate, isGenerating, progress, cancelJob } = useCreateJob(user);
   const [prompt, setPrompt] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
   const [topup, setTopup] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
 
-  const { data: dartBalance, refetch } = useReadContract({
-    contract: dartContract,
-    method: "function balanceOf(address account) returns (uint256)",
-    params: [user?.wallet?.address || ""],
-  });
 
   const generate = async () => {
     if (!prompt?.trim()) {
@@ -43,27 +40,25 @@ export default function GenerateTextField({
       return;
     }
 
-    // if (
-    //   (user?.creditBalance ?? 0) +
-    //     Number(formatEther(dartBalance ?? BigInt(0))) <
-    //   1
-    // ) {
-    //   toast.error("Credit balance too low.");
-    //   return;
-    // }
 
     setShowProgress(true);
 
     mutate(
-      { prompt },
+      { prompt, mediaType },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
           setShowProgress(false);
           handleClose();
+          
+          // For videos, redirect immediately with the postId
+          if (mediaType === 'video' && data?.postId) {
+            router.push(`/home/photo/${data.postId}`);
+          }
+          // For images, the polling in useCreateJob will handle the redirect
         },
         onError: (error) => {
           setShowProgress(false);
-          toast.error(`Error generating image: ${error.message}`);
+          toast.error(`Error generating ${mediaType}: ${error.message}`);
         },
       }
     );
@@ -72,7 +67,7 @@ export default function GenerateTextField({
   const cancelGeneration = () => {
     cancelJob();
     setShowProgress(false);
-    toast.info("Image generation canceled");
+    toast.info(`${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)} generation canceled`);
   };
 
   const handleClose = () => {
@@ -99,7 +94,37 @@ export default function GenerateTextField({
               <textarea
                 onChange={(e) => setPrompt(e.target.value)}
                 className="bg-inherit w-full h-full resize-none outline-none p-4 text-primary-8 placeholder:text-primary-8"
+                placeholder={`Describe the ${mediaType} you want to generate...`}
               ></textarea>
+            </div>
+
+            {/* Media Type Selection */}
+            <div className="px-4 py-2 border-t-[1px] border-primary-11">
+              <div className="flex items-center gap-4">
+                <span className="text-primary-5 text-sm font-medium">Generate:</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setMediaType('image')}
+                    className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                      mediaType === 'image'
+                        ? 'bg-primary-5 text-primary-11 border-primary-5'
+                        : 'text-primary-5 border-primary-8 hover:border-primary-5'
+                    }`}
+                  >
+                    Image
+                  </button>
+                  <button
+                    onClick={() => setMediaType('video')}
+                    className={`px-3 py-1 text-sm rounded-full border transition-colors ${
+                      mediaType === 'video'
+                        ? 'bg-primary-5 text-primary-11 border-primary-5'
+                        : 'text-primary-5 border-primary-8 hover:border-primary-5'
+                    }`}
+                  >
+                    Video
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="h-14 p-2 w-full flex justify-end border-t-[1px] border-primary-11 gap-2">
@@ -110,23 +135,13 @@ export default function GenerateTextField({
                 Close
               </button>
 
-              <Topup open={topup} setOpen={setTopup} refetch={refetchUser} />
+              {/*<Topup open={topup} setOpen={setTopup} refetch={refetchUser} />*/}
 
-              {/* {(user?.creditBalance ?? 0) < 1 && (
-                <button
-                  onClick={() => setTopup(true)}
-                  className="basis-1/6 text-primary-11 bg-primary-5 font-semibold whitespace-nowrap rounded-full px-6"
-                >
-                  Top Up
-                </button>
-              )} */}
-
-              {/* {(user?.creditBalance ?? 0) >= 1 && ( */}
               <button
                 onClick={generate}
-                className="basis-1/6 text-primary-11 bg-primary-5 font-semibold rounded-full px-6"
+                className="basis-1/6 text-primary-11 bg-primary-5 font-semibold whitespace-nowrap rounded-full px-6"
               >
-                Generate
+                Generate {mediaType.charAt(0).toUpperCase() + mediaType.slice(1)}
               </button>
               {/* )} */}
             </div>

@@ -6,7 +6,7 @@ import appConfig from "@/config/appConfig";
 import { useEffect, useState } from "react";
 
 export default function GenerationProgress() {
-  const { isActive, stopGeneration } = useGenerationStore((state) => state);
+  const { isActive, stopGeneration, mediaType } = useGenerationStore((state) => state);
 
   const [expand, setExpand] = useState(false);
   const [size, setSize] = useState(
@@ -33,6 +33,11 @@ export default function GenerationProgress() {
       return;
     }
 
+    // Don't run countdown for videos
+    if (mediaType === 'video') {
+      return;
+    }
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -45,7 +50,7 @@ export default function GenerationProgress() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isActive]);
+  }, [isActive, mediaType]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -59,7 +64,9 @@ export default function GenerationProgress() {
     <div className="fixed z-50 bottom-20 md:bottom-4 right-4 md:right-16 rounded-xl max-w-[496px] w-4/5 bg-primary-13">
       <div className="flex items-center justify-between h-12 md:h-[84px] px-5 text-sm md:text-2xl text-primary-6">
         <p>
-          {isFinishing
+          {mediaType === 'video' 
+            ? "Generating video... This may take few minutes."
+            : isFinishing
             ? "Finishing up..."
             : `Generating image(s) ${formatTime(timeLeft)} left...`}
         </p>

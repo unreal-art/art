@@ -3,10 +3,11 @@ import { createStore } from "zustand/vanilla";
 
 export type GenerationState = {
   isActive: boolean;
+  mediaType: 'image' | 'video';
 };
 
 export type GenerationActions = {
-  startGeneration: () => void;
+  startGeneration: (mediaType?: 'image' | 'video') => void;
   stopGeneration: () => void;
 };
 
@@ -14,11 +15,12 @@ export type GenerationStore = GenerationState & GenerationActions;
 
 //initialize
 export const initGenerationStore = (): GenerationState => {
-  return { isActive: false };
+  return { isActive: false, mediaType: 'image' };
 };
 
 export const defaultInitState: GenerationState = {
   isActive: false,
+  mediaType: 'image',
 };
 
 export const createGenerationStore = (
@@ -28,7 +30,7 @@ export const createGenerationStore = (
     ...initState,
     // startGeneration: () => set((state) => ({ count: state.count - 1 })),
     // incrementCount: () => set((state) => ({ count: state.count + 1 })),
-    startGeneration: () => set(() => ({ isActive: true })),
+    startGeneration: (mediaType = 'image') => set(() => ({ isActive: true, mediaType })),
     stopGeneration: () => set(() => ({ isActive: false })),
   }));
 };

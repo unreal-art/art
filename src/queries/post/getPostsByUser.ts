@@ -35,6 +35,7 @@ export async function getPostsByUser(
     .eq("author", id)
     .neq("isPrivate", true)
     .neq("isDraft", true)
+    .or("ipfsImages.not.is.null,video_data.not.is.null") // Must have either ipfsImages or video_data
     .order("createdAt", { ascending: false })
     .range(range[0], range[1])
 
@@ -83,6 +84,7 @@ export async function getOtherPostsByUser(
     .neq("id", postId)
     .neq("isPrivate", true)
     .neq("isDraft", true)
+    .or("ipfsImages.not.is.null,video_data.not.is.null") // Must have either ipfsImages or video_data
     .order("createdAt", { ascending: false }) // Order posts by creation date, descending
     .range(range[0], range[1])
 
@@ -181,6 +183,7 @@ export async function getPinnedPostsByUser(
     .eq("user_id", id)
     .filter("posts.isPrivate", "neq", true)
     .filter("posts.isDraft", "neq", true)
+    .or("posts.ipfsImages.not.is.null,posts.video_data.not.is.null") // Must have either ipfsImages or video_data
     .order("createdAt", { ascending: false }) // ✅ Sort correctly
     .range(range[0], range[1])
 
@@ -392,6 +395,7 @@ export async function getUserLikedPosts(
     .eq("author", id) // Filter posts by the author_id
     .neq("posts.isPrivate", true)
     .neq("posts.isDraft", true)
+    .or("posts.ipfsImages.not.is.null,posts.video_data.not.is.null") // Must have either ipfsImages or video_data
     .order("created_at", { ascending: false }) // Order posts by creation date, descending
     .range(range[0], range[1])
 
