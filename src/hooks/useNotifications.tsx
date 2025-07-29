@@ -58,22 +58,39 @@ export const useNotifications = (userId: string | null) => {
       return dedupedRequest(
         `notifications-${userId}-${currentPage}`,
         async () => {
-          // Get total count (cached separately)
+          // Get total count with same media filtering for consistency
           const countResponse = await supabase
             .from("notifications")
-            .select("id", { count: "exact", head: true })
+            .select(`
+              id,
+              posts!inner(
+                id,
+                ipfsImages,
+                video_data
+              )
+            `, { count: "exact", head: true })
             .eq("user_id", userId)
-            .neq("sender_id", userId);
+            .neq("sender_id", userId)
+            .or("posts.ipfsImages.not.is.null,posts.video_data.not.is.null");
 
           const totalCount = countResponse.count || 0;
           // console.log("Total notification count:", totalCount);
 
-          // Get notifications - without using the relationship
+          // Get notifications with post media filtering to ensure consistency
           const { data, error } = await supabase
             .from("notifications")
-            .select("*") // Just select all fields from notifications table
+            .select(`
+              *,
+              posts!inner(
+                id,
+                ipfsImages,
+                video_data,
+                media_type
+              )
+            `)
             .eq("user_id", userId)
             .neq("sender_id", userId)
+            .or("posts.ipfsImages.not.is.null,posts.video_data.not.is.null")
             .order("created_at", { ascending: false });
 
           // console.log("Notifications query:", {
@@ -303,10 +320,18 @@ export const useUnreadNotificationsCount = (userId: string | null) => {
         // Use exactly the same filters as the main notifications query
         const { count, error } = await supabase
           .from("notifications")
-          .select("*", { count: "exact", head: true })
+          .select(`
+            *,
+            posts!inner(
+              id,
+              ipfsImages,
+              video_data
+            )
+          `, { count: "exact", head: true })
           .eq("user_id", userId)
           .neq("sender_id", userId)
-          .eq("is_read", false);
+          .eq("is_read", false)
+          .or("posts.ipfsImages.not.is.null,posts.video_data.not.is.null");
 
         if (error) {
           logError("[useUnreadNotificationsCount] Error fetching count", error);

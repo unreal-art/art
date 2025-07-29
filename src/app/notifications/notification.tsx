@@ -6,7 +6,7 @@ import useAuthorImage from "@/hooks/useAuthorImage";
 import useAuthorUsername from "@/hooks/useAuthorUserName";
 import { usePost } from "@/hooks/usePost";
 import { getNotificationMessage } from "@/utils";
-import { getImage } from "../home/formattedPhotos";
+import { getImage, getMediaUrl } from "../home/formattedPhotos";
 import { useMarkNotificationAsRead } from "@/hooks/useMarkNotificationAsRead";
 import { useEffect } from "react";
 import NotificationSkeleton from "./components/notificationSkeleton";
@@ -77,27 +77,45 @@ const Notification: React.FC<NotificationProps> = ({
         </div>
 
         <div className="basis-20  flex items-center w-[20%] ">
-          <Image
-            src={
-              Array.isArray(post?.ipfsImages) &&
-              post.ipfsImages.length > 0 &&
-              typeof post.ipfsImages[0] === "object" &&
-              post.ipfsImages[0] !== null &&
-              "hash" in post.ipfsImages[0] &&
-              "fileNames" in post.ipfsImages[0] &&
-              Array.isArray(post.ipfsImages[0].fileNames) &&
-              post.ipfsImages[0].fileNames.length > 0
-                ? getImage(
-                    post.ipfsImages[0].hash as string,
-                    post.ipfsImages[0].fileNames[0] as string,
-                    post.author,
-                  )
-                : profileImage
-            }
-            width={70}
-            height={70}
-            alt="picture"
-          />
+          {post?.media_type === 'VIDEO' ? (
+            // Render video thumbnail for video posts
+            <video
+              src={getMediaUrl(post as any)}
+              width={70}
+              height={70}
+              className="object-cover rounded"
+              preload="metadata"
+              muted
+              controlsList="nodownload"
+              onLoadedMetadata={(e) => {
+                e.currentTarget.currentTime = 0.1;
+              }}
+            />
+          ) : (
+            // Render image thumbnail for image posts
+            <Image
+              src={
+                Array.isArray(post?.ipfsImages) &&
+                post.ipfsImages.length > 0 &&
+                typeof post.ipfsImages[0] === "object" &&
+                post.ipfsImages[0] !== null &&
+                "hash" in post.ipfsImages[0] &&
+                "fileNames" in post.ipfsImages[0] &&
+                Array.isArray(post.ipfsImages[0].fileNames) &&
+                post.ipfsImages[0].fileNames.length > 0
+                  ? getImage(
+                      post.ipfsImages[0].hash as string,
+                      post.ipfsImages[0].fileNames[0] as string,
+                      post.author,
+                    )
+                  : profileImage
+              }
+              width={70}
+              height={70}
+              alt="post media"
+              className="object-cover rounded"
+            />
+          )}
         </div>
       </div>
     </Link>
