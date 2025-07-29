@@ -14,6 +14,7 @@ interface JobParams {
   negative_prompt?: string;
   model?: string;
   numImages?: number;
+  mediaType?: 'image' | 'video';
 }
 
 /**
@@ -32,11 +33,12 @@ export function useCreateJob(user: ExtendedUser | null) {
   // Maintain local state for tracking
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentMediaType, setCurrentMediaType] = useState<'image' | 'video'>('image');
 
   // Define mutation with proper error handling and retries
   const mutation = useMutation({
     mutationFn: async (params: JobParams) => {
-      const { prompt } = params;
+      const { prompt, mediaType = 'image' } = params;
 
       if (!prompt) throw new Error("Prompt is required");
       if (!user) throw new Error("User must be logged in");
@@ -44,20 +46,27 @@ export function useCreateJob(user: ExtendedUser | null) {
       // Update local state and use the store's function
       setIsGenerating(true);
       setProgress(0);
-      startGeneration();
+      setCurrentMediaType(mediaType);
+      startGeneration(mediaType);
 
       try {
         // Send job request with only the supported parameters
-        await sendJobRequest({
+        const result = await sendJobRequest({
           prompt,
           user,
           stopGeneration,
+          mediaType,
         });
 
         // Update progress
         setProgress(100);
 
-        // Return success
+        // For videos, return the postId and jobId for immediate redirect
+        if (mediaType === 'video' && result) {
+          return { success: true, postId: result.postId, jobId: result.jobId };
+        }
+
+        // For images, return success (polling will handle redirect)
         return { success: true };
       } catch (error) {
         // Handle errors gracefully
@@ -96,10 +105,10 @@ export function useCreateJob(user: ExtendedUser | null) {
     stopGeneration();
   }, [stopGeneration]);
 
-  // Poll for new posts instead of using real-time subscription
+  // Poll for new posts instead of using real-time subscription (only for images)
   useEffect(() => {
-    if (!user || !isGenerating) {
-      return;
+    if (!user || !isGenerating || currentMediaType === 'video') {
+      return; // Skip polling for videos since we redirect immediately
     }
 
     console.log("Starting polling for user:", user.id);
@@ -129,7 +138,7 @@ export function useCreateJob(user: ExtendedUser | null) {
       try {
         const { data } = await supabaseClient
           .from("posts")
-          .select("id, author")
+          .select("id, author, media_type")
           .eq("author", user.id)
           .order("id", { ascending: false })
           .limit(1)
@@ -147,10 +156,8 @@ export function useCreateJob(user: ExtendedUser | null) {
           // Prefetch post data
           queryClient.invalidateQueries({ queryKey: ["posts"] });
 
-          // Navigate to the new post
-          // setTimeout(() => {
+          // Navigate to the new post immediately (for both images and videos)
           router.push(`/home/photo/${data.id}`);
-          // }, 100);
         }
       } catch (error) {
         console.log("Polling check - no new posts yet");

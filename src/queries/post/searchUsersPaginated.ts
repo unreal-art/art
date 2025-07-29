@@ -54,6 +54,12 @@ export const searchUsersPaginated = async (
     createdAt: profile.createdAt ?? "",
     posts: Array.isArray(profile.posts)
       ? profile.posts
+          .filter((post) => {
+            // Filter out posts that don't have either ipfsImages or video_data
+            const hasImages = post.ipfsImages != null;
+            const hasVideoData = post.video_data != null;
+            return hasImages || hasVideoData;
+          })
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort posts by createdAt in descending order (most recent first)
           .slice(0, 10)
           .map((post) => ({

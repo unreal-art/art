@@ -381,6 +381,7 @@ export type Database = {
           isDraft: boolean | null
           isPinned: boolean | null
           isPrivate: boolean | null
+          jobId: string | null
           like_count: number | null
           media_type: string | null
           n: number | null
@@ -400,6 +401,7 @@ export type Database = {
           isDraft?: boolean | null
           isPinned?: boolean | null
           isPrivate?: boolean | null
+          jobId?: string | null
           like_count?: number | null
           media_type?: string | null
           n?: number | null
@@ -419,6 +421,7 @@ export type Database = {
           isDraft?: boolean | null
           isPinned?: boolean | null
           isPrivate?: boolean | null
+          jobId?: string | null
           like_count?: number | null
           media_type?: string | null
           n?: number | null
@@ -542,10 +545,12 @@ export type Database = {
           isPinned: boolean | null
           isPrivate: boolean | null
           like_count: number | null
+          media_type: string | null
           n: number | null
           prompt: string | null
           rank: number | null
           seed: number | null
+          video_data: Json | null
         }
         Insert: {
           author?: string | null
@@ -560,10 +565,12 @@ export type Database = {
           isPinned?: boolean | null
           isPrivate?: boolean | null
           like_count?: number | null
+          media_type?: string | null
           n?: number | null
           prompt?: string | null
           rank?: never
           seed?: number | null
+          video_data?: Json | null
         }
         Update: {
           author?: string | null
@@ -578,10 +585,12 @@ export type Database = {
           isPinned?: boolean | null
           isPrivate?: boolean | null
           like_count?: number | null
+          media_type?: string | null
           n?: number | null
           prompt?: string | null
           rank?: never
           seed?: number | null
+          video_data?: Json | null
         }
         Relationships: [
           {

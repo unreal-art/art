@@ -12,6 +12,7 @@ export async function getPosts(client: Client, start = 0): Promise<Post[]> {
     .select("*")
     .eq("isPrivate", false) // Filter where isPrivate is false
     .eq("isDraft", false) // Filter where isDraft is false
+    .or("ipfsImages.not.is.null,video_data.not.is.null") // Must have either ipfsImages or video_data
     .order("createdAt", { ascending: false })
     .range(range[0], range[1]);
 
@@ -41,6 +42,7 @@ export async function getTopPosts(client: Client, start = 0): Promise<Post[]> {
     .eq("isPrivate", false) // Filter where isPrivate is false
     .eq("isDraft", false) // Filter where isDraft is false
     .gt("like_count", 0)
+    .or("ipfsImages.not.is.null,video_data.not.is.null") // Must have either ipfsImages or video_data
     .order("like_count", { ascending: false })
     .range(range[0], range[1]);
 
@@ -90,8 +92,8 @@ export async function getTopMintedPosts(
       : typeof post.ipfsImages === "string"
       ? (JSON.parse(post.ipfsImages) as UploadResponse[])
       : null,
-    media_type: post.media_type || null,
-    video_data: post.video_data || null,
+    media_type: (post as any).media_type || null, // Handle potentially missing field
+    video_data: (post as any).video_data || null, // Handle potentially missing field
   }));
 }
 
@@ -138,6 +140,7 @@ export async function getFollowingPosts(
     .in("author", followeeIds as string[])
     .eq("isPrivate", false) // Filter where isPrivate is false
     .eq("isDraft", false) // Filter where isDraft is false
+    .or("ipfsImages.not.is.null,video_data.not.is.null") // Must have either ipfsImages or video_data
     .order("createdAt", { ascending: false })
     .range(range[0], range[1]);
 
