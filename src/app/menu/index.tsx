@@ -109,7 +109,6 @@ export default function Menu({ children }: INotificationProps) {
         setIsLoggingOut(false)
       } else {
         log("User logged out successfully")
-        supabase.auth.signOut()
         // Use router.push for smoother navigation
         router.push("/auth")
         // No need to reset isLoggingOut as we're navigating away
