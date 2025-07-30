@@ -1,15 +1,15 @@
-"use client";
-import React, { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import TabBtn from "./components/tabBtn";
-import GenerateInput from "./components/generateInput";
-import dynamic from "next/dynamic";
-import Search from "./components/search";
-import Skeleton from "react-loading-skeleton";
-import PostsProvider from "./components/PostsProvider";
-import { createClient } from "$/supabase/client";
-import { updateUserTorusId } from "@/queries/torus";
-import { ErrorBoundary } from "../components/errorBoundary";
+"use client"
+import React, { useEffect, useState, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
+import TabBtn from "./components/tabBtn"
+import GenerateInput from "./components/generateInput"
+import dynamic from "next/dynamic"
+import Search from "./components/search"
+import Skeleton from "react-loading-skeleton"
+import PostsProvider from "./components/PostsProvider"
+import { createClient } from "$/supabase/client"
+import { updateUserTorusId } from "@/queries/torus"
+import { ErrorBoundary } from "../components/errorBoundary"
 
 // Dynamically import PhotoGallery with proper loading state
 const PhotoGallary = dynamic(() => import("./components/photoGallery"), {
@@ -29,35 +29,35 @@ const PhotoGallary = dynamic(() => import("./components/photoGallery"), {
         ))}
     </div>
   ),
-});
+})
 
 export default function HomePage() {
-  const searchParams = useSearchParams();
-  const searchType = searchParams?.get("s") || "";
-  const [isClient, setIsClient] = useState(false);
+  const searchParams = useSearchParams()
+  const searchType = searchParams?.get("s") || ""
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
     // Mark that we're running on the client
-    setIsClient(true);
+    setIsClient(true)
 
     const checkTorusUser = async () => {
       try {
         // Only try to access localStorage in the client environment
         if (typeof window !== "undefined") {
-          const torusUser = localStorage.getItem("torusUser");
+          const torusUser = localStorage.getItem("torusUser")
           if (torusUser) {
             // Update user
-            await updateUserTorusId(torusUser);
+            await updateUserTorusId(torusUser)
           }
         }
       } catch (error) {
-        console.error("Error checking Torus user:", error);
+        console.error("Error checking Torus user:", error)
         // Gracefully handle the error instead of crashing
       }
-    };
+    }
 
-    checkTorusUser();
-  }, []);
+    checkTorusUser()
+  }, [])
 
   return (
     <PostsProvider searchType={searchType}>
@@ -147,5 +147,5 @@ export default function HomePage() {
         </div>
       </div>
     </PostsProvider>
-  );
+  )
 }

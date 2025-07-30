@@ -1,26 +1,26 @@
-"use client";
-import { ReactNode, useState } from "react";
-import { FlashIcon, LogoutIcon, MoonIcon } from "../components/icons";
-import { useUser } from "@/hooks/useUser";
-import Image from "next/image";
-import Topup from "./topup";
-import useAuthorImage from "@/hooks/useAuthorImage";
-import Link from "next/link";
-import { supabase } from "$/supabase/client";
-import { useRouter } from "next/navigation";
+"use client"
+import { ReactNode, useState } from "react"
+import { FlashIcon, LogoutIcon, MoonIcon } from "../components/icons"
+import { useUser } from "@/hooks/useUser"
+import Image from "next/image"
+import Topup from "./topup"
+import useAuthorImage from "@/hooks/useAuthorImage"
+import Link from "next/link"
+import { supabase } from "$/supabase/client"
+import { useRouter } from "next/navigation"
 import {
   formatDisplayName,
   getContractInstance,
   truncateEmail,
   truncateText,
-} from "@/utils";
-import { torusTestnet } from "$/constants/chains";
-import { useReadContract } from "thirdweb/react";
-import { formatEther } from "ethers";
-import { log, logError } from "@/utils/sentryUtils";
-import OptimizedImage from "../components/OptimizedImage";
-import appConfig from "@/config";
-import WalletButton from "../components/walletButton";
+} from "@/utils"
+import { torusTestnet } from "$/constants/chains"
+import { useReadContract } from "thirdweb/react"
+import { formatEther } from "ethers"
+import { log, logError } from "@/utils/sentryUtils"
+import OptimizedImage from "../components/OptimizedImage"
+import appConfig from "@/config"
+import WalletButton from "../components/walletButton"
 
 // Full-screen loading overlay component
 function LogoutOverlay() {
@@ -42,82 +42,83 @@ function LogoutOverlay() {
         <p className="text-white text-sm mt-2">Logging out...</p>
       </div>
     </div>
-  );
+  )
 }
 
 interface INotificationProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 const dartContract = getContractInstance(
   torusTestnet,
-  appConfig.blockchain.contracts.dart,
-);
+  appConfig.blockchain.contracts.dart
+)
 
 // Separate client component for the button
 function MenuButton({
   onClick,
   children,
 }: {
-  onClick: () => void;
-  children: ReactNode;
+  onClick: () => void
+  children: ReactNode
 }) {
-  return <button onClick={onClick}>{children}</button>;
+  return <button onClick={onClick}>{children}</button>
 }
 
 export default function Menu({ children }: INotificationProps) {
-  const { userId, user, refetchUser } = useUser();
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [topup, setTopup] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { userId, user, refetchUser } = useUser()
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [topup, setTopup] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const { data: dartBalance, refetch } = useReadContract({
     contract: dartContract,
     method: "function balanceOf(address account) returns (uint256)",
     params: [user?.wallet?.address || ""],
-  });
+  })
 
   const handleClose = () => {
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   const handleTopup = () => {
-    setTopup(true);
-    handleClose();
-  };
+    setTopup(true)
+    handleClose()
+  }
 
   const logoutUser = async () => {
     try {
       // First close the menu
-      handleClose();
+      handleClose()
       // Then show the loading overlay
-      setIsLoggingOut(true);
+      setIsLoggingOut(true)
 
       // Small delay to ensure the overlay is visible
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100))
       //clear cookies
-      const cookies = document.cookie.split(";");
+      const cookies = document.cookie.split(";")
       for (const cookie of cookies) {
-        const eqPos = cookie.indexOf("=");
-        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
-        document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        const eqPos = cookie.indexOf("=")
+        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie
+        document.cookie = `${name.trim()}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
       }
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut()
       if (error) {
-        logError("Error logging out", error);
-        setIsLoggingOut(false);
+        logError("Error logging out", error)
+        setIsLoggingOut(false)
       } else {
-        log("User logged out successfully");
+        log("User logged out successfully")
+        supabase.auth.signOut()
         // Use router.push for smoother navigation
-        router.push("/auth");
+        router.push("/auth")
         // No need to reset isLoggingOut as we're navigating away
       }
     } catch (err) {
-      logError("Unexpected error during logout", err);
-      setIsLoggingOut(false);
+      logError("Unexpected error during logout", err)
+      setIsLoggingOut(false)
     }
-  };
+  }
   return (
     <>
       <MenuButton onClick={() => setOpen(true)}>{children}</MenuButton>
@@ -254,7 +255,7 @@ export default function Menu({ children }: INotificationProps) {
       {/* Show full-screen loading overlay when logging out */}
       {isLoggingOut && <LogoutOverlay />}
     </>
-  );
+  )
 }
 
 export function MenuItem({
@@ -265,12 +266,12 @@ export function MenuItem({
   onClick,
   disabled,
 }: {
-  icon: ReactNode;
-  text: string;
-  onClick?: () => void;
-  underlineOff?: boolean;
-  action?: ReactNode;
-  disabled?: boolean;
+  icon: ReactNode
+  text: string
+  onClick?: () => void
+  underlineOff?: boolean
+  action?: ReactNode
+  disabled?: boolean
 }) {
   return (
     <div
@@ -285,5 +286,5 @@ export function MenuItem({
       </div>
       {action}
     </div>
-  );
+  )
 }
