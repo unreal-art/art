@@ -1,23 +1,29 @@
-import { getUser } from "$/queries/user";
-import { createClient } from "$/supabase/server";
-import { queryOptions } from "@tanstack/react-query";
-import { NextResponse } from "next/server";
+import { getUser } from "$/queries/user"
+import { createClient } from "$/supabase/server"
+import { queryOptions } from "@tanstack/react-query"
+import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
-  const encodedRedirectTo = requestUrl.searchParams.get("redirect") || "/";
+  const requestUrl = new URL(request.url)
+  const code = requestUrl.searchParams.get("code")
+  const encodedRedirectTo = requestUrl.searchParams.get("redirect") || "/"
 
-  const redirectTo = decodeURIComponent(encodedRedirectTo);
+  console.log("encodedRedirectTo", encodedRedirectTo)
 
-  const supabase = await createClient();
+  const redirectTo = decodeURIComponent(encodedRedirectTo)
+
+  if (requestUrl.searchParams.get("error")) {
+    return NextResponse.redirect(`${requestUrl.origin}${redirectTo}`)
+  }
+
+  const supabase = await createClient()
 
   if (code) {
-    await supabase.auth.exchangeCodeForSession(code);
+    await supabase.auth.exchangeCodeForSession(code)
   }
 
   //Do this to generate user wallet
-  const user = await getUser();
+  const user = await getUser()
 
   // if (torusUser && torusUser !== "" && !user?.torus_id && user && user.id) {
   //   //update user torus id field if it does not exist
@@ -26,5 +32,5 @@ export async function GET(request: Request) {
   //     .update({ torus_id: torusUser })
   //     .eq("id", user.id);
   // }
-  return NextResponse.redirect(`${requestUrl.origin}${redirectTo}`);
+  return NextResponse.redirect(`${requestUrl.origin}${redirectTo}`)
 }

@@ -1,69 +1,70 @@
-"use client";
-import { ReactNode, useState, useEffect } from "react";
-import { createClient } from "$/supabase/client";
-import config from "$/config";
-import { Provider } from "@supabase/supabase-js";
-import { useRouter, useSearchParams } from "next/navigation";
+"use client"
+import { ReactNode, useState, useEffect } from "react"
+import { createClient } from "$/supabase/client"
+import config from "$/config"
+import { Provider } from "@supabase/supabase-js"
+import { useRouter, useSearchParams } from "next/navigation"
 
 interface AuthBtnProps {
-  icon: ReactNode;
-  children: string;
-  provider: Provider;
+  icon: ReactNode
+  children: string
+  provider: Provider
 }
 
 export default function AuthBtn({ icon, children, provider }: AuthBtnProps) {
-  const [loading, setLoading] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const torusUser = searchParams?.get("torus_user") || null;
+  const [loading, setLoading] = useState(false)
+  const [isOnline, setIsOnline] = useState(true)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const torusUser = searchParams?.get("torus_user") || null
 
   useEffect(() => {
     // Initialize online status
-    setIsOnline(navigator.onLine);
+    setIsOnline(navigator.onLine)
 
     if (torusUser) {
       //set it in local storage
-      localStorage.setItem("torusUser", torusUser);
+      localStorage.setItem("torusUser", torusUser)
     }
 
     // Set up listeners for online/offline status
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
+  }, [])
 
   const handleSignIn = () => {
     // If offline, redirect to offline page instead of attempting auth
     if (!isOnline) {
-      router.replace("/offline.html");
-      return;
+      router.replace("/offline.html")
+      return
     }
 
     // First, create a state object that includes your torus user
     const state = {
       torusUser: torusUser ? torusUser : "",
       // Any other state you want to persist
-    };
+    }
+    console.log("state", state)
 
     // Encode it to base64
-    const encodedState = btoa(JSON.stringify(state));
+    const encodedState = btoa(JSON.stringify(state))
 
     //${torusUser ? `?torus_user=${encodeURIComponent(torusUser)}` : ""}`;
     // const redirectTo = `${config.domainName}/api/auth/callback`;
 
-    const redirectTo = `${window.location.origin}/api/auth/callback`;
+    const redirectTo = `${window.location.origin}/api/auth/callback`
 
-    setLoading(true);
+    setLoading(true)
     try {
-      const supabase = createClient();
+      const supabase = createClient()
       supabase.auth.signInWithOAuth({
         provider: provider ? provider : ("" as Provider),
         options: {
@@ -76,15 +77,15 @@ export default function AuthBtn({ icon, children, provider }: AuthBtnProps) {
 
           // },
         },
-      });
+      })
     } catch (error) {
       if (!navigator.onLine) {
-        router.replace("/offline.html");
+        router.replace("/offline.html")
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <button
@@ -95,5 +96,5 @@ export default function AuthBtn({ icon, children, provider }: AuthBtnProps) {
       {icon}
       <p className="block w-40">{children}</p>
     </button>
-  );
+  )
 }
