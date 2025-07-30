@@ -65,7 +65,7 @@ export default function GenerationProgress() {
       <div className="flex items-center justify-between h-12 md:h-[84px] px-5 text-sm md:text-2xl text-primary-6">
         <p>
           {mediaType === 'video' 
-            ? "Generating video... This may take few minutes."
+            ? "Generating video... This may take a few minutes."
             : isFinishing
             ? "Finishing up..."
             : `Generating image(s) ${formatTime(timeLeft)} left...`}
