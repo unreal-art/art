@@ -4,6 +4,7 @@ import { createClient } from "$/supabase/client"
 import { Client } from "$/supabase/client"
 import { logError } from "@/utils/sentryUtils"
 import appConfig from "@/config"
+import { toast } from "sonner"
 
 /**
  * Updates a user's torus ID in the database
@@ -51,8 +52,11 @@ export const updateUserTorusId = async (torusId: string, client?: Client) => {
 
       if (updateError) {
         console.error("Error updating torus_id:", updateError)
-        await supabase.auth.signOut()
-        window.location.replace(`/auth?torus_user=${torusId}`)
+        // await supabase.auth.signOut()
+        // window.location.replace(`/auth?torus_user=${torusId}`)
+
+        // show error to user..
+        toast.error("Failed to update torus_id")
         return { success: false, error: "Failed to update torus_id" }
       }
 

@@ -12,6 +12,10 @@ export async function GET(request: Request) {
 
   const redirectTo = decodeURIComponent(encodedRedirectTo)
 
+  if (requestUrl.searchParams.get("error")) {
+    return NextResponse.redirect(`${requestUrl.origin}${redirectTo}`)
+  }
+
   const supabase = await createClient()
 
   if (code) {
