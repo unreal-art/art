@@ -87,9 +87,13 @@ export const updateUserTorusId = async (torusId: string, client?: Client) => {
   } catch (error) {
     console.error("Unexpected error in updateUserTorusId:", error)
     // FIXME:lets not logout the user just cuz of this
-    await supabase.auth.signOut()
-    window.location.replace(`/auth?torus_user=${torusId}`)
-    return { success: false, error: "Unexpected error occurred" }
+    // await supabase.auth.signOut()
+    // window.location.replace(`/auth?torus_user=${torusId}`)
+    return {
+      success: false, //FIXME:fake it
+      error: "Unexpected error occurred",
+      errorMsg: error,
+    }
   }
 }
 
