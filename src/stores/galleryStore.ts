@@ -1,33 +1,33 @@
-import { create } from "zustand";
+import { create } from "zustand"
 
 export type GalleryTab =
   | "EXPLORE"
   | "FOLLOWING"
   | "FEED"
   | "SEARCH"
-  | "FEATURED MINTS";
+  | "FEATURED MINTS"
 
 interface GalleryState {
   // Active tab in the gallery
-  activeTab: GalleryTab;
+  activeTab: GalleryTab
 
   // Is a tab transition in progress?
-  isTabTransitioning: boolean;
+  isTabTransitioning: boolean
 
   // Previous active tab (for transition optimization)
-  previousTab: GalleryTab | null;
+  previousTab: GalleryTab | null
 
   // Setters
-  setActiveTab: (tab: GalleryTab) => void;
-  setIsTabTransitioning: (isTransitioning: boolean) => void;
+  setActiveTab: (tab: GalleryTab) => void
+  setIsTabTransitioning: (isTransitioning: boolean) => void
 
   // Initialize from URL parameter
-  initFromUrl: (urlParam: string | null) => void;
+  initFromUrl: (urlParam: string | null) => void
 }
 
 export const useGalleryStore = create<GalleryState>((set) => ({
-  // Default tab
-  activeTab: "FEATURED MINTS",
+  // Default tab //TODO: active tab
+  activeTab: "EXPLORE",
 
   // Default transition state
   isTabTransitioning: false,
@@ -39,13 +39,13 @@ export const useGalleryStore = create<GalleryState>((set) => ({
   setActiveTab: (tab: GalleryTab) =>
     set((state) => {
       // Only set transitioning if the tab is changing
-      const isChanging = state.activeTab !== tab;
+      const isChanging = state.activeTab !== tab
       return {
         activeTab: tab,
         isTabTransitioning: isChanging,
         // Track previous tab when changing
         previousTab: isChanging ? state.activeTab : state.previousTab,
-      };
+      }
     }),
 
   // Set the transitioning state
@@ -54,10 +54,10 @@ export const useGalleryStore = create<GalleryState>((set) => ({
 
   // Initialize from URL parameter
   initFromUrl: (urlParam) => {
-    if (!urlParam) return;
+    if (!urlParam) return
 
     // Convert URL parameter to uppercase for gallery tab
-    const paramUppercase = urlParam.toUpperCase() as GalleryTab;
+    const paramUppercase = urlParam.toUpperCase() as GalleryTab
 
     // Only set if it's a valid tab
     const validTabs: GalleryTab[] = [
@@ -66,7 +66,7 @@ export const useGalleryStore = create<GalleryState>((set) => ({
       "FEED",
       "SEARCH",
       "FEATURED MINTS",
-    ];
+    ]
     if (validTabs.includes(paramUppercase)) {
       set((state) => ({
         previousTab:
@@ -76,7 +76,7 @@ export const useGalleryStore = create<GalleryState>((set) => ({
         activeTab: paramUppercase,
         // Don't set transitioning on initial load
         isTabTransitioning: false,
-      }));
+      }))
     }
   },
-}));
+}))
