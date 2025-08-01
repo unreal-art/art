@@ -1,4 +1,5 @@
 import { useUser } from "@/hooks/useUser"
+import { random } from "lodash"
 import { create } from "zustand"
 
 export type GalleryTab =
@@ -26,12 +27,14 @@ interface GalleryState {
   initFromUrl: (urlParam: string | null) => void
 }
 
+// FIXME: torus User logic , nothing is working really
+function choice<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
 export const useGalleryStore = create<GalleryState>((set) => {
-  let user = useUser()
-
   return {
     // Default tab //TODO: active tab
-    activeTab: user?.torusId ? "FEATURED MINTS" : "EXPLORE",
+    activeTab: choice(["FEATURED MINTS", "EXPLORE", "FOLLOWING"]),
 
     // Default transition state
     isTabTransitioning: false,
