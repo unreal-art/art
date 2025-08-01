@@ -27,7 +27,9 @@ interface GalleryState {
 
 export const useGalleryStore = create<GalleryState>((set) => ({
   // Default tab //TODO: active tab
-  activeTab: "EXPLORE",
+  activeTab: window.localStorage.getItem("torusUser")
+    ? "FEATURED MINTS"
+    : "EXPLORE",
 
   // Default transition state
   isTabTransitioning: false,

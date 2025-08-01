@@ -42,13 +42,9 @@ export default function PostsProvider({
   const queryClient = useQueryClient()
   const isMounted = useRef(true)
 
-  const torusUser = localStorage.getItem("torusUser")
-
   // Normalize searchType for consistency
   const normalizedSearchType =
-    (searchType?.toUpperCase() as SearchType) || torusUser
-      ? "FEATURED_MINTS"
-      : "EXPLORE"
+    (searchType?.toUpperCase() as SearchType) || "EXPLORE"
 
   useEffect(() => {
     // Set up mounted ref for cleanup
