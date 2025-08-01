@@ -46,9 +46,9 @@ export default function PostsProvider({
 
   // Normalize searchType for consistency
   const normalizedSearchType =
-    (searchType?.toUpperCase() as SearchType) || "EXPLORE"
-
-  console.log("normalizedSearchType", normalizedSearchType)
+    (searchType?.toUpperCase() as SearchType) || torusUser
+      ? "FEATURED_MINTS"
+      : "EXPLORE"
 
   useEffect(() => {
     // Set up mounted ref for cleanup
