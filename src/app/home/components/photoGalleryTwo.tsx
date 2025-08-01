@@ -139,10 +139,12 @@ const LazyMedia = React.memo(
                 onMouseEnter={(e) => e.currentTarget.play()}
                 onMouseLeave={(e) => e.currentTarget.pause()}
               />
-              {/* Video indicator overlay - positioned in bottom right corner */}
-              <div className="absolute bottom-2 right-2">
-                <div className="w-6 h-6 bg-black bg-opacity-70 rounded-full flex items-center justify-center">
-                  <div className="w-0 h-0 border-l-4 border-l-white border-y-2 border-y-transparent ml-0.5"></div>
+              {/* Modern video indicator overlay */}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                  <div className="w-6 h-6 bg-white bg-opacity-90 rounded-full flex items-center justify-center shadow-md">
+                    <div className="w-0 h-0 border-l-4 border-l-black border-y-2 border-y-transparent ml-0.5"></div>
+                  </div>
                 </div>
               </div>
             </div>
