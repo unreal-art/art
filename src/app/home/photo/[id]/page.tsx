@@ -345,7 +345,7 @@ function GenerationContent() {
                   </div>
                 }
               >
-                <div className="relative w-[306px] h-[408px] sm:w-[350px] sm:h-[450px] md:w-[400px] md:h-[500px] lg:w-[450px] lg:h-[550px] xl:w-[500px] xl:h-[600px]">
+                <div className="relative w-full max-w-[380px] h-[408px] sm:max-w-[450px] sm:h-[450px] md:max-w-[520px] md:h-[500px] lg:max-w-[600px] lg:h-[550px] xl:max-w-[700px] xl:h-[600px]">
                   {needsVideoPolling && post?.id && post?.jobId ? (
                     // Show video status polling component while video is being generated
                     <VideoStatusPoll 
