@@ -361,7 +361,6 @@ function GenerationContent() {
                       title={`${post?.author || 'Unreal'}'s Creation`}
                       controls={true}
                       playsInline={true}
-                      crossOrigin="anonymous"
                     />
                   ) : (
                     // Show image

@@ -69,6 +69,13 @@ export default function EnhancedVideoPlayer({
     setIsClient(true)
   }, [])
 
+  // Client-side only effect
+  useEffect(() => {
+    if (videoRef.current && startTime && startTime > 0) {
+      videoRef.current.currentTime = startTime;
+    }
+  }, [startTime, isClient]);
+
   // Set up video event listeners
   useEffect(() => {
     const video = videoRef.current
@@ -92,10 +99,12 @@ export default function EnhancedVideoPlayer({
 
     const onPlayHandler = () => {
       setIsPlaying(true)
+      if (onPlay) onPlay()
     }
 
     const onPauseHandler = () => {
       setIsPlaying(false)
+      if (onPause) onPause()
     }
 
     const onEndedHandler = () => {
@@ -115,6 +124,11 @@ export default function EnhancedVideoPlayer({
       setIsLoading(false)
     }
 
+    // Simple error logging
+    const onError = (e: Event) => {
+      console.error('Video error occurred:', e);
+    };
+
     video.addEventListener("loadedmetadata", onLoadedMetadata)
     video.addEventListener("timeupdate", onTimeUpdateHandler)
     video.addEventListener("play", onPlayHandler)
@@ -123,6 +137,7 @@ export default function EnhancedVideoPlayer({
     video.addEventListener("volumechange", onVolumeChange)
     video.addEventListener("waiting", onWaiting)
     video.addEventListener("canplay", onCanPlay)
+    video.addEventListener("error", onError)
 
     return () => {
       video.removeEventListener("loadedmetadata", onLoadedMetadata)
@@ -133,6 +148,7 @@ export default function EnhancedVideoPlayer({
       video.removeEventListener("volumechange", onVolumeChange)
       video.removeEventListener("waiting", onWaiting)
       video.removeEventListener("canplay", onCanPlay)
+      video.removeEventListener("error", onError)
     }
   }, [onPlay, onPause, onEnded, onTimeUpdate, startTime])
 
@@ -241,7 +257,7 @@ export default function EnhancedVideoPlayer({
       ref={playerRef}
       className={`enhanced-player-container relative ${className} overflow-hidden rounded-lg`}
     >
-      <video
+      <video 
         ref={videoRef}
         src={src}
         poster={poster}
@@ -249,7 +265,6 @@ export default function EnhancedVideoPlayer({
         autoPlay={autoPlay}
         loop={loop}
         muted={isMuted}
-        crossOrigin={crossOrigin}
         playsInline={playsInline}
         onClick={controls ? togglePlay : undefined}
       />
