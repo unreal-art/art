@@ -1,0 +1,73 @@
+/* Import Vidstack default styles */
+@import '@vidstack/react/player/styles/default/theme.css';
+@import '@vidstack/react/player/styles/default/layouts/video.css';
+
+/* Custom enhancements for the video player */
+.enhanced-player-container {
+  --video-brand-color: #3182ce; /* Primary brand color for controls */
+  --video-focus-ring: 0 0 0 3px rgba(49, 130, 206, 0.6); /* Focus state for accessibility */
+  
+  /* Container styles */
+  width: 100%;
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #000;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced scrubber/timeline */
+.enhanced-player-container [role="slider"] {
+  height: 6px;
+  transition: height 0.2s ease;
+}
+
+.enhanced-player-container:hover [role="slider"] {
+  height: 8px;
+}
+
+/* Thumbnail previews */
+.enhanced-player-container .vds-thumbnail-preview {
+  border-radius: 4px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Button hover states */
+.enhanced-player-container .vds-control {
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.enhanced-player-container .vds-control:hover {
+  transform: scale(1.1);
+}
+
+/* Time display */
+.enhanced-player-container .vds-time {
+  font-weight: 500;
+}
+
+/* Volume slider */
+.enhanced-player-container .vds-volume-slider {
+  width: 80px;
+}
+
+/* Fullscreen animation */
+.enhanced-player-container.vds-fullscreen {
+  transition: all 0.3s ease;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .enhanced-player-container .vds-control-group {
+    gap: 8px;
+  }
+  
+  .enhanced-player-container .vds-volume-slider {
+    width: 60px;
+  }
+}
+
+/* Custom loading spinner */
+.enhanced-player-container .vds-buffering-indicator {
+  --spinner-color: var(--video-brand-color);
+}
