@@ -22,7 +22,6 @@ type SearchType =
   | "FOLLOWING"
   | "FEED"
   | "FEATURED_MINTS"
-  | string
   | undefined
 
 // Define response type to ensure proper typing
@@ -47,9 +46,9 @@ export default function PostsProvider({
 
   // Normalize searchType for consistency
   const normalizedSearchType =
-    (searchType?.toUpperCase() as SearchType) || torusUser
-      ? "FEATURED_MINTS"
-      : "EXPLORE"
+    (searchType?.toUpperCase() as SearchType) || "EXPLORE"
+
+  console.log("normalizedSearchType", normalizedSearchType)
 
   useEffect(() => {
     // Set up mounted ref for cleanup
@@ -80,8 +79,12 @@ export default function PostsProvider({
                 case "FEED":
                   result = await getTopPosts(supabase, pageParam)
                   break
-                default:
+
+                case "FEATURED_MINTS":
                   result = await getTopMintedPosts(supabase, pageParam)
+                  break
+                default:
+                  result = await getPosts(supabase, pageParam)
               }
 
               // Ensure result is an array to prevent runtime errors

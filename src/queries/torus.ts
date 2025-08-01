@@ -55,33 +55,18 @@ export const updateUserTorusId = async (torusId: string, client?: Client) => {
         // await supabase.auth.signOut()
         // window.location.replace(`/auth?torus_user=${torusId}`)
 
+        // window.localStorage.removeItem("torusUser") //FIXME: should we remove?
         // show error to user..
         toast.error("Failed to update torus_id")
         return { success: false, error: "Failed to update torus_id" }
       }
 
-      // Insert credit purchase record for new user
-      const creditAmount = appConfig.app.newUserCredit
-
-      const { error: creditError } = await authClient
-        .from("credit_purchases")
-        .insert([
-          {
-            amount: creditAmount,
-            user: profileData.id,
-          },
-        ])
-
-      if (creditError) {
-        console.error("Error inserting credit purchase:", creditError)
-        // Don't fail the whole process if credit insertion fails
-      }
-
       // Clear localStorage after successful update
-      window.localStorage.removeItem("torusUser")
       return { success: true }
     } else {
+      window.localStorage.setItem("torusUser", torusId)
       console.log("User already has torus_id")
+      toast.success(`You are a torus user of id- ${torusId}`)
       return { success: true }
     }
   } catch (error) {
