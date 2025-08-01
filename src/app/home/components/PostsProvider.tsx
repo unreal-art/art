@@ -1,20 +1,20 @@
-"use client";
+"use client"
 
-import { supabase } from "$/supabase/client";
+import { supabase } from "$/supabase/client"
 import {
   dehydrate,
   HydrationBoundary,
   useQueryClient,
-} from "@tanstack/react-query";
-import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
+} from "@tanstack/react-query"
+import { useState, useEffect, useRef } from "react"
+import Image from "next/image"
 import {
   getFollowingPosts,
   getPosts,
   getTopPosts,
   getTopMintedPosts,
-} from "@/queries/post/getPosts";
-import Loading from "../loading";
+} from "@/queries/post/getPosts"
+import Loading from "../loading"
 
 // Define a type for the search type to improve type safety
 type SearchType =
@@ -23,39 +23,43 @@ type SearchType =
   | "FEED"
   | "FEATURED_MINTS"
   | string
-  | undefined;
+  | undefined
 
 // Define response type to ensure proper typing
 interface QueryResponse {
-  data: any[];
-  nextCursor: number | undefined;
+  data: any[]
+  nextCursor: number | undefined
 }
 
 export default function PostsProvider({
   children,
   searchType,
 }: {
-  children: React.ReactNode;
-  searchType?: string;
+  children: React.ReactNode
+  searchType?: string
 }) {
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const queryClient = useQueryClient();
-  const isMounted = useRef(true);
+  const [isHydrated, setIsHydrated] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
+  const queryClient = useQueryClient()
+  const isMounted = useRef(true)
+
+  const torusUser = localStorage.getItem("torusUser")
 
   // Normalize searchType for consistency
   const normalizedSearchType =
-    (searchType?.toUpperCase() as SearchType) || "FEATURED_MINTS";
+    (searchType?.toUpperCase() as SearchType) || torusUser
+      ? "FEATURED_MINTS"
+      : "EXPLORE"
 
   useEffect(() => {
     // Set up mounted ref for cleanup
-    isMounted.current = true;
+    isMounted.current = true
 
     const prefetchData = async () => {
       try {
         // Reset state on new prefetch
-        setError(null);
-        setIsHydrated(false);
+        setError(null)
+        setIsHydrated(false)
 
         // Prefetch initial data based on search type
         await queryClient.prefetchInfiniteQuery({
@@ -63,21 +67,21 @@ export default function PostsProvider({
           queryFn: async ({ pageParam = 0 }) => {
             try {
               // @ts-ignore
-              let result = [];
+              let result = []
 
               // Select the right query function based on search type
               switch (normalizedSearchType) {
                 case "EXPLORE":
-                  result = await getPosts(supabase, pageParam);
-                  break;
+                  result = await getPosts(supabase, pageParam)
+                  break
                 case "FOLLOWING":
-                  result = await getFollowingPosts(supabase, pageParam);
-                  break;
+                  result = await getFollowingPosts(supabase, pageParam)
+                  break
                 case "FEED":
-                  result = await getTopPosts(supabase, pageParam);
-                  break;
+                  result = await getTopPosts(supabase, pageParam)
+                  break
                 default:
-                  result = await getTopMintedPosts(supabase, pageParam);
+                  result = await getTopMintedPosts(supabase, pageParam)
               }
 
               // Ensure result is an array to prevent runtime errors
@@ -85,51 +89,51 @@ export default function PostsProvider({
                 console.warn(
                   "Expected array result from API but got:",
                   typeof result
-                );
-                result = [];
+                )
+                result = []
               }
 
               return {
                 //@ts-ignore
                 data: result,
                 nextCursor: result.length > 0 ? pageParam + 1 : undefined,
-              } as QueryResponse;
+              } as QueryResponse
             } catch (err) {
-              console.error("Error fetching page data:", err);
+              console.error("Error fetching page data:", err)
               // Return empty result instead of throwing to prevent query failure
-              return { data: [], nextCursor: undefined } as QueryResponse;
+              return { data: [], nextCursor: undefined } as QueryResponse
             }
           },
           initialPageParam: 0,
           getNextPageParam: (lastPage: QueryResponse) => {
             // Safe access with type checking
-            if (!lastPage || typeof lastPage !== "object") return undefined;
-            return "nextCursor" in lastPage ? lastPage.nextCursor : undefined;
+            if (!lastPage || typeof lastPage !== "object") return undefined
+            return "nextCursor" in lastPage ? lastPage.nextCursor : undefined
           },
-        });
+        })
 
         // Only update state if component is still mounted
         if (isMounted.current) {
-          setIsHydrated(true);
+          setIsHydrated(true)
         }
       } catch (err) {
-        console.error("Error in data prefetching:", err);
+        console.error("Error in data prefetching:", err)
         // Only update state if component is still mounted
         if (isMounted.current) {
-          setError(err instanceof Error ? err : new Error(String(err)));
+          setError(err instanceof Error ? err : new Error(String(err)))
           // Set hydrated to true even on error to render children with empty state
-          setIsHydrated(true);
+          setIsHydrated(true)
         }
       }
-    };
+    }
 
-    prefetchData();
+    prefetchData()
 
     // Cleanup function to prevent state updates after unmounting
     return () => {
-      isMounted.current = false;
-    };
-  }, [normalizedSearchType, queryClient]);
+      isMounted.current = false
+    }
+  }, [normalizedSearchType, queryClient])
 
   // Handle error state
   if (error) {
@@ -138,7 +142,7 @@ export default function PostsProvider({
         <p className="font-medium">Error loading data:</p>
         <p>{error.message}</p>
       </div>
-    );
+    )
   }
 
   // Create a smoother transition between loading and hydrated states
@@ -181,5 +185,5 @@ export default function PostsProvider({
         </HydrationBoundary>
       </div>
     </div>
-  );
+  )
 }
