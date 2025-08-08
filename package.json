@@ -88,7 +88,7 @@
     "supabase": "^2.24.3",
     "swiper": "9.4.1",
     "tailwind-merge": "^3.3.0",
-    "thirdweb": "5.102.6",
+    "thirdweb": "5.105.16",
     "three": "^0.173.0",
     "use-debounce": "^10.0.4",
     "zustand": "^5.0.3"
