@@ -23,7 +23,7 @@ export async function GET(
 
     // Make request to external API with server-side API key
     const response = await fetch(
-      `https://openai.unreal.art/v1/videos/status/${jobId}`,
+      `https://openai.ideomind.org/v1/videos/status/${jobId}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,

@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "app.unreal.art"
+    namespace "app.ideomind.org"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.unreal.art"
+        applicationId "app.ideomind.org"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

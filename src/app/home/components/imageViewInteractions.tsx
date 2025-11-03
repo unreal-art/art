@@ -78,7 +78,7 @@ export default function ImageViewInteractions({
             post={post as Post}
             userId={userId as string}
             setOpen={setOpenShare}
-            link={"https://art.unreal.art/home/photo/" + postId}
+            link={"https://art.ideomind.org/home/photo/" + postId}
           />
         </div>
       )}

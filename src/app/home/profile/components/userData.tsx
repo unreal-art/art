@@ -260,8 +260,8 @@ export default function UserData() {
         setOpen={setOpenShare}
         link={
           profileId
-            ? "https://art.unreal.art/home/profile/" + profileId
-            : "https://art.unreal.art/home"
+            ? "https://art.ideomind.org/home/profile/" + profileId
+            : "https://art.ideomind.org/home"
         }
         isProfile={true}
       />

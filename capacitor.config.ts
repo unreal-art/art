@@ -1,13 +1,13 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "app.unreal.art",
+  appId: "app.ideomind.org",
   appName: "unreal",
   webDir: "public",
   server: {
     androidScheme: "https",
     cleartext: true,
-    allowNavigation: ["unreal.art"]
+    allowNavigation: ["ideomind.org"]
   }
 };
 

@@ -33,7 +33,7 @@ const chains = appConfig.environment.isDevelopment
 
 const metadata = {
   name: "unreal",
-  url: "https://art.unreal.art",
+  url: "https://art.ideomind.org",
   description: "An ai media agent",
 };
 

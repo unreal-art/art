@@ -72,7 +72,7 @@ export async function POST(req: Request) {
         const prompt = requestData.inputs.Prompt
         const body = JSON.stringify({ "prompt": prompt })
         
-        const response = await fetch("https://openai.unreal.art/v1/videos/generations", {
+        const response = await fetch("https://openai.ideomind.org/v1/videos/generations", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

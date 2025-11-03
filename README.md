@@ -1,4 +1,4 @@
-# Unreal.art – The AI Studio & Launchpad
+# ideomind.org – The AI Studio & Launchpad
 
 Welcome to the future of AI creation, collaboration, and innovation.
 
@@ -6,7 +6,7 @@ Welcome to the future of AI creation, collaboration, and innovation.
 
 ## 🚀 The Story So Far
 
-Unreal.art began as an ambitious AI content generation platform, powered by proprietary decentralized compute (dePin). In just a few months, we:
+ideomind.org began as an ambitious AI content generation platform, powered by proprietary decentralized compute (dePin). In just a few months, we:
 
 - Attracted 3,500+ users
 - Forged partnerships and won prizes
@@ -43,8 +43,8 @@ We’re evolving into an AI Launchpad and Studio—a unified space for:
 
 Whether you’re a founder, creator, or just AI-curious—Unreal is your home. Help us shape the future of decentralized, democratized AI.
 
-- Try it now: [art.unreal.art](https://art.unreal.art)
-- Learn more: [unreal.art](https://unreal.art)
+- Try it now: [art.ideomind.org](https://art.ideomind.org)
+- Learn more: [ideomind.org](https://ideomind.org)
 - Twitter: [@ideomind](https://twitter.com/ideomind)
 
 ---

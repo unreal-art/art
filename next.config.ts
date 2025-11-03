@@ -44,7 +44,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "r2.unreal.art",
+        hostname: "r2.ideomind.org",
       },
       {
         protocol: "https",
@@ -63,7 +63,7 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_VERSION: `1.0.0-${Date.now()}`,
 
     // Storage URLs for preconnect
-    NEXT_PUBLIC_R2_STORAGE_URL: "https://r2.unreal.art",
+    NEXT_PUBLIC_R2_STORAGE_URL: "https://r2.ideomind.org",
 
     // Lighthouse gateway
     NEXT_PUBLIC_LIGHTHOUSE_GATE_WAY: "https://gateway.lighthouse.storage/ipfs/",

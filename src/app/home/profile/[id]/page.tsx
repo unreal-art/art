@@ -52,8 +52,8 @@ export async function generateMetadata({
     const username = data?.username || data?.full_name || "Unreal Creator"
     const avatarUrl = data?.avatar_url || ""
     const profileUrl = paramsData.id
-      ? `https://art.unreal.art/home/profile/${paramsData.id}`
-      : "https://art.unreal.art/home"
+      ? `https://art.ideomind.org/home/profile/${paramsData.id}`
+      : "https://art.ideomind.org/home"
 
     return {
       title: `${username} | Unreal Profile`,

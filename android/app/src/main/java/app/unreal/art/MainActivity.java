@@ -1,4 +1,4 @@
-package app.unreal.art;
+package app.ideomind.org;
 
 import com.getcapacitor.BridgeActivity;
 

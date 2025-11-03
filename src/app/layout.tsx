@@ -55,13 +55,13 @@ export const metadata: Metadata = {
   // ],
   openGraph: {
     type: "website",
-    url: "https://art.unreal.art",
+    url: "https://art.ideomind.org",
     title: "Unreal Art",
     description: "A place to let your unreal imagination come alive.",
     siteName: "Unreal",
     images: [
       {
-        url: "https://art.unreal.art/unreal_wordmark.png",
+        url: "https://art.ideomind.org/unreal_wordmark.png",
         width: 1200,
         height: 630,
         alt: "unreal art",
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     // creator: "@YourTwitterHandle",
     title: "Unreal Art",
     description: "A place to let your unreal imagination come alive.",
-    images: ["https://art.unreal.art/unreal_wordmark.png"],
+    images: ["https://art.ideomind.org/unreal_wordmark.png"],
   },
   other: {
     "theme-color": "#191919", // Discord embed color

@@ -28,7 +28,7 @@ export const appConfig = {
     baseUrl:
       process.env.NODE_ENV === "development"
         ? "http://localhost:3000"
-        : "https://art.unreal.art",
+        : "https://art.ideomind.org",
   },
 
   // External services
@@ -66,7 +66,7 @@ export const appConfig = {
     },
     openai: {
       apiKey: process.env.OPENAI_API_KEY,
-      apiUrl: process.env.OPENAI_API_URL || "https://openai.unreal.art/v1",
+      apiUrl: process.env.OPENAI_API_URL || "https://openai.ideomind.org/v1",
     },
   },
 

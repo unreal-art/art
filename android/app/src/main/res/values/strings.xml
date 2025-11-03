@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">unreal</string>
     <string name="title_activity_main">unreal</string>
-    <string name="package_name">app.unreal.art</string>
-    <string name="custom_url_scheme">app.unreal.art</string>
+    <string name="package_name">app.ideomind.org</string>
+    <string name="custom_url_scheme">app.ideomind.org</string>
 </resources>
