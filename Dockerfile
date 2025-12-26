@@ -1,5 +1,5 @@
 # Build stage
-FROM oven/bun:alpine AS builder
+FROM oven/bun:canary-alpine AS builder
 WORKDIR /app
 
 # Copy only package files first for better caching
@@ -13,7 +13,7 @@ COPY . .
 RUN bun run build
 
 # Deploy stage
-FROM oven/bun:alpine
+FROM oven/bun:canary-alpine
 
 ENV PORT=3000
 ENV NODE_ENV=production
