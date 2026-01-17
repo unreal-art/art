@@ -52,6 +52,7 @@
     "@tanstack/react-query-devtools": "^5.69.0",
     "@tremor/react": "^3.18.7",
     "@types/react-datepicker": "^7.0.0",
+    "@vidstack/react": "^0.6.15",
     "autoprefixer": "^10.4.21",
     "axios": "^1.7.9",
     "bluebird": "^3.7.2",

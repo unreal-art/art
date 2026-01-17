@@ -22,7 +22,8 @@ import {
   getImageResolution,
   truncateText,
 } from "@/utils";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import EnhancedVideoPlayer from "@/app/components/EnhancedVideoPlayer";
 import "react-loading-skeleton/dist/skeleton.css";
 import ViewSkeleton from "../components/viewSkeleton";
 import Link from "next/link";
@@ -344,7 +345,7 @@ function GenerationContent() {
                   </div>
                 }
               >
-                <div className="relative w-[306px] h-[408px] sm:w-[350px] sm:h-[450px] md:w-[400px] md:h-[500px] lg:w-[450px] lg:h-[550px] xl:w-[500px] xl:h-[600px]">
+                <div className="relative w-full max-w-[380px] h-[408px] sm:max-w-[450px] sm:h-[450px] md:max-w-[520px] md:h-[500px] lg:max-w-[600px] lg:h-[550px] xl:max-w-[700px] xl:h-[600px]">
                   {needsVideoPolling && post?.id && post?.jobId ? (
                     // Show video status polling component while video is being generated
                     <VideoStatusPoll 
@@ -354,16 +355,13 @@ function GenerationContent() {
                     />
                   ) : post?.media_type === 'VIDEO' ? (
                     // Show video once it's ready
-                    <video
-                      className="object-contain w-full h-full"
+                    <EnhancedVideoPlayer
                       src={mainMediaUrl}
-                      controls
-                      controlsList="nodownload"
-                      preload="metadata"
-                      style={{ maxWidth: '100%', maxHeight: '100%' }}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                      className="object-contain w-full h-full enhanced-player-container"
+                      title={`${post?.author || 'Unreal'}'s Creation`}
+                      controls={true}
+                      playsInline={true}
+                    />
                   ) : (
                     // Show image
                     <OptimizedImage
